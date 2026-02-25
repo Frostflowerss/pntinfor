@@ -27,8 +27,8 @@ export function CVProjects({ range }: CVProjectsProps) {
               <Badge
                 background="brand-alpha-weak"
                 onBackground="brand-strong"
-                paddingX="10"
-                paddingY="4"
+                paddingX="s"
+                paddingY="xs"
                 textVariant="label-default-s"
               >
                 Class {p.constructionClass}
