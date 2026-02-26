@@ -1,0 +1,24 @@
+@use "../breakpoints.scss" as breakpoints;
+
+.hover {
+    transition: var(--transition-micro-medium);
+
+    &:hover {
+        transform: translateX(var(--static-space-4));
+    }
+}
+
+@media (max-width: breakpoints.$s) {
+    .textAlign {
+        text-align: center;
+    }
+
+    .blockAlign {
+        align-self: center;
+    }
+}
+
+.contactBlock{ max-width: 260px; }
+
+
+.blockAlign{ padding-left: max(0px, env(safe-area-inset-left)); }
