@@ -106,8 +106,8 @@ export default function About() {
           left="0"
           style={{ top: "50%", transform: "translateY(-50%)" }}
           position="fixed"
-          paddingLeft="24"
-          gap="32"
+          paddingLeft="l"
+          gap="xl"
           s={{ hide: true }}
         >
           <TableOfContents structure={structure} about={about} />
@@ -139,7 +139,7 @@ export default function About() {
           >
             <Avatar src={person.avatar} size="xl" />
 
-            <Row gap="8" vertical="center">
+            <Row gap="s" vertical="center">
               <Icon onBackground="accent-weak" name="globe" />
               <span className="pnt-vi">Hà Nội</span>
               <span className="pnt-en" style={{ marginLeft: 8 }}>
@@ -148,7 +148,7 @@ export default function About() {
             </Row>
 
             {person.languages && person.languages.length > 0 && (
-              <Row wrap gap="8">
+              <Row wrap gap="s">
                 {person.languages.map((language, index) => (
                   <Row
                     key={index}
@@ -180,7 +180,7 @@ export default function About() {
                 </span>
               </Button>
 
-              <Column gap="8">
+              <Column gap="s">
                 <Text variant="body-default-s" onBackground="neutral-weak">
                   <span className="pnt-vi">Email</span>
                   <span className="pnt-en" style={{ marginLeft: 8 }}>
@@ -210,8 +210,7 @@ export default function About() {
                   </span>
                 </Text>
 
-                {/* Tránh bọc <div> trong <Text> để an toàn parser/transform */}
-                <Column className="pnt-bilingual" gap="4">
+                <Column className="pnt-bilingual" gap="xs">
                   <span className="pnt-vi">{contact.addressVI}</span>
                   <span className="pnt-en">{contact.addressEN}</span>
                 </Column>
@@ -221,7 +220,7 @@ export default function About() {
         )}
 
         <Column className={styles.blockAlign} flex={9} maxWidth={44}>
-          <Column fillWidth minHeight="160" vertical="center" marginBottom="32">
+          <Column fillWidth minHeight="160" vertical="center" marginBottom="xl">
             <Heading className={styles.textAlign} variant="display-strong-xl">
               {person.name}
             </Heading>
@@ -247,7 +246,7 @@ export default function About() {
                 <BilingualTitle label={about.work.title} />
               </Heading>
 
-              <Column fillWidth gap="l" marginBottom="40">
+              <Column fillWidth gap="l" marginBottom="xl">
                 {about.work.experiences.map((experience, index) => (
                   <RevealFx
                     key={`${experience.company}-${experience.role}-${index}`}
@@ -262,18 +261,18 @@ export default function About() {
                       padding="l"
                       gap="m"
                     >
-                      <Row fillWidth horizontal="between" vertical="end" marginBottom="4" wrap>
+                      <Row fillWidth horizontal="between" vertical="end" marginBottom="xs" wrap>
                         <Text variant="heading-strong-l">{experience.company}</Text>
                         <Text variant="heading-default-xs" onBackground="neutral-weak">
                           {experience.timeframe}
                         </Text>
                       </Row>
 
-                      <Text variant="body-default-s" onBackground="brand-weak" marginBottom="8">
+                      <Text variant="body-default-s" onBackground="brand-weak" marginBottom="s">
                         {experience.role}
                       </Text>
 
-                      <Column as="ul" gap="16">
+                      <Column as="ul" gap="m">
                         {experience.achievements.map((achievement, idx) => (
                           <Text as="li" variant="body-default-m" key={`${experience.company}-${idx}`}>
                             {achievement}
@@ -282,7 +281,7 @@ export default function About() {
                       </Column>
 
                       {experience.images && experience.images.length > 0 && (
-                        <Row fillWidth paddingTop="m" gap="12" wrap>
+                        <Row fillWidth paddingTop="m" gap="m" wrap>
                           {experience.images.map((image, imgIdx) => (
                             <Row
                               key={imgIdx}
@@ -314,12 +313,12 @@ export default function About() {
               <Heading as="h2" id={about.studies.title} variant="display-strong-s" marginBottom="m">
                 <BilingualTitle label={about.studies.title} />
               </Heading>
-              <Column fillWidth gap="l" marginBottom="40">
+              <Column fillWidth gap="l" marginBottom="xl">
                 {about.studies.institutions.map((institution, index) => (
                   <RevealFx key={`${institution.name}-${index}`} translateY="12" delay={0.06 * index}>
                     <Column
                       fillWidth
-                      gap="6"
+                      gap="s"
                       border="neutral-alpha-weak"
                       background="neutral-alpha-weak"
                       radius="l"
