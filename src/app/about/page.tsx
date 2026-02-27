@@ -22,7 +22,7 @@ export async function generateMetadata() {
   return Meta.generate({
     title: about.title,
     description: about.description,
-    baseURL: baseURL,
+    baseURL,
     image: `/api/og/generate?title=${encodeURIComponent(about.title)}`,
     path: about.path,
   });
@@ -66,11 +66,7 @@ function levelToPercent(level: string) {
 
 export default function About() {
   const structure = [
-    {
-      title: about.intro.title,
-      display: about.intro.display,
-      items: [],
-    },
+    { title: about.intro.title, display: about.intro.display, items: [] as string[] },
     {
       title: about.work.title,
       display: about.work.display,
@@ -118,7 +114,7 @@ export default function About() {
         </Column>
       )}
 
-      {/* Mobile TOC (fix missing headlines on mobile) */}
+      {/* Mobile TOC */}
       {about.tableOfContent.display && (
         <Row hide s={{ hide: false }}>
           <MobileTOC structure={structure} />
@@ -168,7 +164,7 @@ export default function About() {
               </Row>
             )}
 
-            {/* Contact block: PDF + Email + Phone + Address */}
+            {/* Contact block */}
             <Column
               fillWidth
               border="neutral-alpha-weak"
@@ -177,13 +173,7 @@ export default function About() {
               padding="m"
               gap="m"
             >
-              <Button
-                href={contact.cvPdfPath}
-                variant="secondary"
-                size="m"
-                weight="default"
-                arrowIcon
-              >
+              <Button href={contact.cvPdfPath} variant="secondary" size="m" weight="default" arrowIcon>
                 <span className="pnt-vi">Tải CV (PDF)</span>
                 <span className="pnt-en" style={{ marginLeft: 8 }}>
                   Download PDF
@@ -219,12 +209,12 @@ export default function About() {
                     Address
                   </span>
                 </Text>
-                <Text variant="body-default-s">
-                  <div className="pnt-bilingual">
-                    <span className="pnt-vi">{contact.addressVI}</span>
-                    <span className="pnt-en">{contact.addressEN}</span>
-                  </div>
-                </Text>
+
+                {/* Tránh bọc <div> trong <Text> để an toàn parser/transform */}
+                <Column className="pnt-bilingual" gap="4">
+                  <span className="pnt-vi">{contact.addressVI}</span>
+                  <span className="pnt-en">{contact.addressEN}</span>
+                </Column>
               </Column>
             </Column>
           </Column>
@@ -259,7 +249,11 @@ export default function About() {
 
               <Column fillWidth gap="l" marginBottom="40">
                 {about.work.experiences.map((experience, index) => (
-                  <RevealFx key={`${experience.company}-${experience.role}-${index}`} translateY="16" delay={0.08 * index}>
+                  <RevealFx
+                    key={`${experience.company}-${experience.role}-${index}`}
+                    translateY="16"
+                    delay={0.08 * index}
+                  >
                     <Column
                       fillWidth
                       border="neutral-alpha-weak"
@@ -269,9 +263,7 @@ export default function About() {
                       gap="m"
                     >
                       <Row fillWidth horizontal="between" vertical="end" marginBottom="4" wrap>
-                        <Text id={experience.company} variant="heading-strong-l">
-                          {experience.company}
-                        </Text>
+                        <Text variant="heading-strong-l">{experience.company}</Text>
                         <Text variant="heading-default-xs" onBackground="neutral-weak">
                           {experience.timeframe}
                         </Text>
@@ -299,7 +291,13 @@ export default function About() {
                               minWidth={image.width}
                               height={image.height}
                             >
-                              <Media enlarge radius="m" sizes={image.width.toString()} alt={image.alt} src={image.src} />
+                              <Media
+                                enlarge
+                                radius="m"
+                                sizes={image.width.toString()}
+                                alt={image.alt}
+                                src={image.src}
+                              />
                             </Row>
                           ))}
                         </Row>
@@ -319,10 +317,15 @@ export default function About() {
               <Column fillWidth gap="l" marginBottom="40">
                 {about.studies.institutions.map((institution, index) => (
                   <RevealFx key={`${institution.name}-${index}`} translateY="12" delay={0.06 * index}>
-                    <Column fillWidth gap="6" border="neutral-alpha-weak" background="neutral-alpha-weak" radius="l" padding="l">
-                      <Text id={institution.name} variant="heading-strong-l">
-                        {institution.name}
-                      </Text>
+                    <Column
+                      fillWidth
+                      gap="6"
+                      border="neutral-alpha-weak"
+                      background="neutral-alpha-weak"
+                      radius="l"
+                      padding="l"
+                    >
+                      <Text variant="heading-strong-l">{institution.name}</Text>
                       <Text variant="heading-default-xs" onBackground="neutral-weak">
                         {institution.description}
                       </Text>
@@ -347,9 +350,7 @@ export default function About() {
                     <RevealFx key={`${skill.title}-${index}`} translateY="10" delay={0.03 * index}>
                       <div className={skillStyles.skillRow}>
                         <div className={skillStyles.top}>
-                          <Text id={skill.title} variant="heading-strong-l">
-                            {skill.title}
-                          </Text>
+                          <Text variant="heading-strong-l">{skill.title}</Text>
                           <div className={skillStyles.level}>
                             <Text variant="body-default-s" onBackground="neutral-weak">
                               {skill.description}
