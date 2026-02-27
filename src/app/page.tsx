@@ -26,7 +26,7 @@ export async function generateMetadata() {
 
 export default function Home() {
   return (
-    <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
+    <Column maxWidth="m" gap="xl" paddingY="m" horizontal="center">
       <Schema
         as="webPage"
         baseURL={baseURL}
@@ -47,37 +47,37 @@ export default function Home() {
             <RevealFx
               fillWidth
               horizontal="center"
-              paddingTop="16"
-              paddingBottom="32"
-              paddingLeft="12"
+              paddingTop="m"
+              paddingBottom="xl"
+              paddingLeft="m"
             >
               <Badge
                 background="brand-alpha-weak"
-                paddingX="12"
-                paddingY="4"
+                paddingX="m"
+                paddingY="xs"
                 onBackground="neutral-strong"
                 textVariant="label-default-s"
                 arrow={false}
                 href={home.featured.href}
               >
-                <Row paddingY="2">{home.featured.title}</Row>
+                <Row paddingY="-1">{home.featured.title}</Row>
               </Badge>
             </RevealFx>
           )}
 
-          <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
+          <RevealFx translateY={4} fillWidth horizontal="center" paddingBottom="m">
             <Heading wrap="balance" variant="display-strong-m">
               {home.headline}
             </Heading>
           </RevealFx>
 
-          <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="28">
+          <RevealFx translateY={8} delay={0.2} fillWidth horizontal="center" paddingBottom="xl">
             <Text wrap="balance" onBackground="neutral-weak" variant="heading-default-l">
               {home.subline}
             </Text>
           </RevealFx>
 
-          <RevealFx paddingTop="12" delay={0.35} horizontal="center" paddingLeft="12">
+          <RevealFx paddingTop="m" delay={0.35} horizontal="center" paddingLeft="m">
             <Button
               id="about"
               data-border="rounded"
@@ -87,10 +87,10 @@ export default function Home() {
               weight="default"
               arrowIcon
             >
-              <Row gap="8" vertical="center" paddingRight="4">
+              <Row gap="s" vertical="center" paddingRight="xs">
                 {about.avatar.display && (
                   <Avatar
-                    marginRight="8"
+                    marginRight="s"
                     style={{ marginLeft: "-0.75rem" }}
                     src={person.avatar}
                     size="m"
@@ -103,12 +103,12 @@ export default function Home() {
         </Column>
       </Column>
 
-      <RevealFx translateY="12" delay={0.5} fillWidth>
+      <RevealFx translateY={12} delay={0.5} fillWidth>
         <HomeShowcase />
       </RevealFx>
 
       {/* Keep Home content up to this project only (per request). */}
-      <RevealFx translateY="16" delay={0.65}>
+      <RevealFx translateY={16} delay={0.65}>
         <Projects range={[1, 1]} />
       </RevealFx>
     </Column>
