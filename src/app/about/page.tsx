@@ -250,7 +250,7 @@ export default function About() {
                 {about.work.experiences.map((experience, index) => (
                   <RevealFx
                     key={`${experience.company}-${experience.role}-${index}`}
-                    translateY="16"
+                    translateY={16}
                     delay={0.08 * index}
                   >
                     <Column
@@ -315,7 +315,7 @@ export default function About() {
               </Heading>
               <Column fillWidth gap="l" marginBottom="xl">
                 {about.studies.institutions.map((institution, index) => (
-                  <RevealFx key={`${institution.name}-${index}`} translateY="12" delay={0.06 * index}>
+                  <RevealFx key={`${institution.name}-${index}`} translateY={12} delay={0.06 * index}>
                     <Column
                       fillWidth
                       gap="s"
@@ -346,7 +346,7 @@ export default function About() {
                   const level = skill.tags?.[0]?.name ?? "";
                   const percent = levelToPercent(level);
                   return (
-                    <RevealFx key={`${skill.title}-${index}`} translateY="10" delay={0.03 * index}>
+                    <RevealFx key={`${skill.title}-${index}`} translateY={10} delay={0.03 * index}>
                       <div className={skillStyles.skillRow}>
                         <div className={skillStyles.top}>
                           <Text variant="heading-strong-l">{skill.title}</Text>
