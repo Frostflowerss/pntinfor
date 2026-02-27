@@ -60,7 +60,7 @@ export default function Home() {
                 arrow={false}
                 href={home.featured.href}
               >
-                <Row paddingY="-1">{home.featured.title}</Row>
+                <Row paddingY="xs">{home.featured.title}</Row>
               </Badge>
             </RevealFx>
           )}
@@ -107,7 +107,6 @@ export default function Home() {
         <HomeShowcase />
       </RevealFx>
 
-      {/* Keep Home content up to this project only (per request). */}
       <RevealFx translateY={16} delay={0.65}>
         <Projects range={[1, 1]} />
       </RevealFx>
