@@ -155,8 +155,8 @@ export default function About() {
                     border="neutral-alpha-weak"
                     background="neutral-alpha-weak"
                     radius="full"
-                    paddingX="12"
-                    paddingY="6"
+                    paddingX="m"
+                    paddingY="s"
                   >
                     <Text variant="label-default-s">{language}</Text>
                   </Row>
