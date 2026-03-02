@@ -266,8 +266,9 @@ export default function About() {
                 skills={about.technical.skills.map((s) => ({     
                   title: s.title,     
                   description: typeof s.description === "string" ? s.description : "",   
-                  tags: s.tags,   }))}  
-                levelToPercent={levelToPercent} 
+                  tags: s.tags,
+                  percent: levelToPercent(s.tags?.[0]?.name ?? ""),
+                }))}   
               />
             </>
           )}
