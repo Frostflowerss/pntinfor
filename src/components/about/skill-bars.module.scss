@@ -1,0 +1,54 @@
+.skillRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skillGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .skillGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.level {
+  text-align: right;
+}
+
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(211, 176, 130, 0.92);
+}
+
+@media (max-width: 720px) {
+  .top {
+    grid-template-columns: 1fr;
+  }
+
+  .level {
+    text-align: left;
+  }
+}

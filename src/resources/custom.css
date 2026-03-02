@@ -1,0 +1,199 @@
+:root {
+  /* Slightly smaller typography across the site (per request). */
+  --font-size-display-multiplier: 0.92;
+  --font-size-heading-multiplier: 0.95;
+  --font-size-body-multiplier: 0.95;
+  --font-size-label-multiplier: 0.95;
+
+  --line-height-display-multiplier: 1;
+  --line-height-heading-multiplier: 1;
+  --line-height-body-multiplier: 1;
+  --line-height-label-multiplier: 1;
+}
+
+/* VI-EN bilingual styling (PDF: VI = white, EN = yellow/gold). */
+.pnt-vi {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.pnt-en {
+  color: #d3b082;
+}
+
+/* Utility for rendering two lines nicely when the UI is compact. */
+.pnt-bilingual {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.pnt-muted {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* Amber-toned background (aligned with PDF gold accent). */
+:root[data-theme="dark"] {
+  --page-background: #0e0b07;
+  --surface-background: rgba(18, 14, 9, 0.82);
+}
+
+/* Contact mini (About) - EN only, compact, with gold hover glow */
+.pnt-contactMini {
+  width: 100%;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+}
+
+.pnt-contactMini a {
+  color: rgba(255, 255, 255, 0.86);
+  text-decoration: none;
+}
+
+.pnt-contactMini .pnt-contactRow {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 0.7rem;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 0.35rem 0.35rem;
+  border-radius: 0.75rem;
+  transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pnt-contactMini .pnt-contactKey {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.pnt-contactMini .pnt-contactVal {
+  color: rgba(255, 255, 255, 0.90);
+}
+
+.pnt-contactMini .pnt-contactRow:hover {
+  border-color: rgba(211, 176, 130, 0.55);
+  background: rgba(211, 176, 130, 0.06);
+  box-shadow: 0 0 0 1px rgba(211, 176, 130, 0.22), 0 10px 30px rgba(211, 176, 130, 0.12);
+}
+
+.pnt-contactMini .pnt-contactRow:hover .pnt-contactVal {
+  color: #d3b082;
+}
+
+@media (max-width: 720px) {
+  .pnt-contactMini .pnt-contactRow {
+    grid-template-columns: 78px 1fr;
+  }
+}
+
+/* Avatar subtle tilt */
+.pnt-tiltAvatar {
+  --rx: 0deg;
+  --ry: 0deg;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  transition: transform 240ms ease, filter 240ms ease;
+  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry));
+  filter: drop-shadow(0 16px 50px rgba(0, 0, 0, 0.28));
+}
+
+.pnt-tiltAvatar[data-tilt="1"] {
+  filter: drop-shadow(0 18px 55px rgba(211, 176, 130, 0.12));
+}
+
+@media (hover: none) {
+  .pnt-tiltAvatar {
+    transform: none;
+  }
+}
+
+/* Software skills grid (About) - fixed row alignment + in-view bar animation */
+.pnt-skillGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.25rem;
+}
+
+.pnt-skillCol {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.pnt-skillRow {
+  display: grid;
+  grid-template-columns: 240px 1fr 52px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pnt-skillName {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.pnt-skillName :global(*) {
+  max-width: 100%;
+}
+
+.pnt-skillBarWrap {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pnt-skillBar {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.pnt-skillFill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(211, 176, 130, 0.92), rgba(211, 176, 130, 0.55));
+  box-shadow: 0 0 18px rgba(211, 176, 130, 0.18);
+  border-radius: 999px;
+  transform-origin: left center;
+}
+
+.pnt-skillRow[data-inview="1"] .pnt-skillFill {
+  width: var(--p);
+  transition: width 950ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.pnt-skillPct {
+  text-align: right;
+  font-size: 12px;
+  color: rgba(211, 176, 130, 0.92);
+}
+
+@media (max-width: 960px) {
+  .pnt-skillRow {
+    grid-template-columns: 200px 1fr 48px;
+  }
+}
+
+@media (max-width: 720px) {
+  .pnt-skillGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .pnt-skillRow {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .pnt-skillPct {
+    text-align: left;
+  }
+}
