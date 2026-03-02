@@ -262,7 +262,13 @@ export default function About() {
                 <BilingualTitle label={about.technical.title} />
               </Heading>
 
-              <SkillGrid skills={about.technical.skills} levelToPercent={levelToPercent} />
+              <SkillGrid   
+                skills={about.technical.skills.map((s) => ({     
+                  title: s.title,     
+                  description: typeof s.description === "string" ? s.description : "",   
+                  tags: s.tags,   }))}  
+                levelToPercent={levelToPercent} 
+              />
             </>
           )}
         </Column>
