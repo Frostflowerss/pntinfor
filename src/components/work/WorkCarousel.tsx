@@ -264,7 +264,7 @@ export function WorkCarousel() {
           <button
             key={idx}
             className={`${styles.segment} ${idx === activeIndex ? styles.segmentActive : ""}`}
-            onClick={() => scrollToIndex(idx)}
+            onClick={() => scrollToVirtual(idx + 1)}
             aria-label={`Go to project ${idx + 1}`}
             type="button"
           >
