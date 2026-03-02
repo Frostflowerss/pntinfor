@@ -11,10 +11,8 @@ type Skill = {
 
 export function SkillGrid({
   skills,
-  levelToPercent,
 }: {
-  skills: Skill[];
-  levelToPercent: (level: string) => number;
+  skills: (Skill & { percent: number })[];
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(false);
@@ -44,7 +42,7 @@ export function SkillGrid({
         <div key={colIdx} className={styles.skillCol}>
           {col.map((skill, idx) => {
             const level = skill.tags?.[0]?.name ?? "";
-            const percent = levelToPercent(level);
+            const percent = skill.percent;
             // Stagger delay for premium feel.
             const delayMs = (colIdx * splitAt + idx) * 60;
             return (
