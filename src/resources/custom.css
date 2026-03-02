@@ -138,7 +138,7 @@
   min-width: 0;
 }
 
-.pnt-skillName :global(*) {
+.pnt-skillName * {
   max-width: 100%;
 }
 
