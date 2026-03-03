@@ -20,10 +20,6 @@ export type WorkProject = {
 
 // Home showcase images (add/remove items and indicators update automatically).
 export const homeShowcaseImages: string[] = [
-  "/images/gallery/vertical-1.jpg",
-  "/images/gallery/vertical-2.jpg",
-  "/images/gallery/vertical-3.jpg",
-  "/images/gallery/vertical-4.jpg",
   "/images/gallery/horizontal-1.jpg",
   "/images/gallery/horizontal-2.jpg",
   "/images/gallery/horizontal-3.jpg",
