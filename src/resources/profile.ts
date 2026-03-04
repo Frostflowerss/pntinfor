@@ -1,5 +1,5 @@
 export const contact = {
-  phone: "(+84)888284998",
+  phone: "0888284998",
   email: "pnt.architect.work@gmail.com",
   addressVI: "Vinhomes Smart City, Tây Mỗ, Nam Từ Liêm, Hà Nội",
   addressEN: "Vinhomes Smart City, Tay Mo, South Tu Liem, Ha Noi",
