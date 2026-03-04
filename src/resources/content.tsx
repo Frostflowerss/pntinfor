@@ -1,6 +1,6 @@
 import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
 
-// NOTE: This project is a UI template. Replace placeholder images in /public/images with your own.
+
 
 const person: Person = {
   firstName: "Pham",
@@ -9,7 +9,7 @@ const person: Person = {
   role: "ARCHITECT",
   avatar: "/images/avatar.jpg",
   email: "pnt.architect.work@gmail.com",
-  location: "Asia/Ho_Chi_Minh",
+  location: "Asia/Viet Nam/Ha Noi",
   languages: ["Vietnamese", "English"],
 };
 
