@@ -1,4 +1,4 @@
-# PNT Architect Portfolio (VI/EN)
+# PNT (VI/EN)
 
 Website portfolio cá nhân theo phong cách Magic Portfolio (Once UI + Next.js), đã tùy biến để:
 - Luôn hiển thị **song ngữ 2 dòng (VI/EN)** theo palette trong CV PDF.
