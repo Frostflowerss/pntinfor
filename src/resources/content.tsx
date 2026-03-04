@@ -9,7 +9,7 @@ const person: Person = {
   role: "ARCHITECT",
   avatar: "/images/avatar.jpg",
   email: "pnt.architect.work@gmail.com",
-  location: "Asia/SaiGon",
+  location: "Asia/Saigon",
   languages: ["Vietnamese", "English"],
 };
 
