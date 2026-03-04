@@ -1,0 +1,33 @@
+@use "../breakpoints.scss" as breakpoints;
+
+// Keep the left profile card fixed while the right content scrolls (desktop).
+.sidebarSticky {
+    position: sticky;
+    top: 96px; // leave room for the top navigation
+    align-self: flex-start;
+    height: fit-content;
+}
+
+.hover {
+    transition: var(--transition-micro-medium);
+
+    &:hover {
+        transform: translateX(var(--static-space-4));
+    }
+}
+
+@media (max-width: breakpoints.$s) {
+    .sidebarSticky {
+        position: static;
+        top: auto;
+        align-self: stretch;
+    }
+
+    .textAlign {
+        text-align: center;
+    }
+
+    .blockAlign {
+        align-self: center;
+    }
+}
