@@ -1,9 +1,4 @@
-# PNT Architect Portfolio (Next.js) — Hướng dẫn cập nhật nội dung
-
-Tài liệu này chỉ ra **đúng file** và **dòng** cần sửa để bạn cập nhật nội dung nhanh (text/ảnh) cho các mục: **Home / About / Work / Gallery**.
-
-> Ghi chú: Số **dòng** được tính theo phiên bản hiện tại trong ZIP (V12). Nếu bạn thêm/bớt nội dung, số dòng có thể thay đổi. Khi lệch, hãy tìm theo **từ khoá** được ghi kèm.
-
+# PNT  
 ---
 
 ## Quy ước đường dẫn ảnh (đã tách riêng Home / Work / Gallery)
