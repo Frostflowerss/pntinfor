@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   PNT ARCH — Design tokens
+   Concept: "Blueprint editorial" — cool architectural ink,
+   off-white type, a single precise azure accent, fine hairlines.
+   ============================================================ */
+:root {
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  --ink: #0b0c0e;
+  --ink-soft: #121317;
+  --line: rgba(255, 255, 255, 0.09);
+  --paper: #0b0c0e;
+  --paper-soft: #141519;
+
+  --fg: #ecedf0;
+  --fg-muted: rgba(236, 237, 240, 0.62);
+  --fg-faint: rgba(236, 237, 240, 0.38);
+
+  --accent: #5c8cff;
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+
+  --vi: #f3f4f6;
+  --en: #7ea2ff;
+
+  --radius: 14px;
+  --shell-pad: clamp(1.25rem, 5vw, 4rem);
+}
+
+:root[data-theme="light"] {
+  --ink: #15161a;
+  --ink-soft: #ffffff;
+  --line: rgba(18, 19, 23, 0.12);
+  --paper: #f4f3ef;
+  --paper-soft: #ffffff;
+
+  --fg: #15161a;
+  --fg-muted: rgba(21, 22, 26, 0.64);
+  --fg-faint: rgba(21, 22, 26, 0.42);
+
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+
+  --vi: #15161a;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--paper);
+  color: var(--fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Thin scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fg-faint);
+  border-radius: 99px;
+  border: 3px solid var(--paper);
+}
+
+/* ---------- Bilingual type ---------- */
+.vi {
+  color: var(--vi);
+}
+.en {
+  color: var(--en);
+  font-feature-settings: "ss01";
+}
+
+/* ---------- Blueprint grid backdrop ---------- */
+.blueprint-grid {
+  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ---------- Glass surface ---------- */
+.glass {
+  background: color-mix(in srgb, var(--ink-soft) 70%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--line);
+}
+
+/* ---------- Skeleton shimmer ---------- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--fg) 10%, transparent),
+    transparent
+  );
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ---------- Hover underline link ---------- */
+.link-underline {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-size: 0% 1.5px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.link-underline:hover {
+  background-size: 100% 1.5px;
+}
+
+/* ---------- Focus ring (a11y) ---------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--max, 76rem);
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+/* ---------- Mesh network color tokens (space-separated RGB) ---------- */
+:root {
+  --mesh-primary: 124 162 255;
+  --mesh-secondary: 92 140 255;
+  --mesh-glow: 150 180 255;
+  --mesh-node: 214 230 255;
+  --mesh-line: 124 162 255;
+}
+:root[data-theme="light"] {
+  --mesh-primary: 58 104 214;
+  --mesh-secondary: 92 132 230;
+  --mesh-glow: 120 152 232;
+  --mesh-node: 44 86 196;
+  --mesh-line: 74 116 214;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    --mesh-primary: 58 104 214;
+    --mesh-secondary: 92 132 230;
+    --mesh-glow: 120 152 232;
+    --mesh-node: 44 86 196;
+    --mesh-line: 74 116 214;
+  }
+}
+
+/* ---------- Site background: mesh network layer ---------- */
+.fx-bg {
+  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 80px 80px;
+  -webkit-mask-image: radial-gradient(ellipse 96% 90% at 50% 40%, #000 32%, transparent 92%);
+  mask-image: radial-gradient(ellipse 96% 90% at 50% 40%, #000 32%, transparent 92%);
+}
+.fx-bg canvas {
+  opacity: 0.75;
+}
+:root[data-theme="light"] .fx-bg canvas {
+  opacity: 0.5;
+}
+
+/* Reduced motion: kill all transitions & animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Print / Export PDF
+   Hide chrome + decoration, force a clean light document,
+   widen content, avoid awkward page breaks.
+   ============================================================ */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  body {
+    background: #ffffff !important;
+    color: #111418 !important;
+    overflow: visible !important;
+  }
+  /* Hide navigation, footer, decoration, controls */
+  .no-print,
+  [data-fx],
+  .blueprint-grid {
+    display: none !important;
+  }
+  /* Reclaim the full page */
+  main {
+    padding-top: 0 !important;
+    min-height: 0 !important;
+  }
+  .shell {
+    max-width: none !important;
+    padding-inline: 0 !important;
+  }
+  /* Neutralise the dark theme for ink-on-paper */
+  .vi {
+    color: #111418 !important;
+  }
+  .en {
+    color: #444b55 !important;
+  }
+  a {
+    color: #111418 !important;
+    text-decoration: none !important;
+  }
+  .glass {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-color: #d9dce2 !important;
+  }
+  /* Keep blocks intact across pages */
+  section,
+  article,
+  figure,
+  img,
+  li {
+    break-inside: avoid;
+  }
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
