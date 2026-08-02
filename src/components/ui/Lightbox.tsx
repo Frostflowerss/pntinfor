@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
@@ -19,6 +20,8 @@ export function Lightbox({
   onIndex: (i: number) => void;
 }) {
   const open = index !== null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const go = useCallback(
     (dir: number) => {
@@ -44,7 +47,14 @@ export function Lightbox({
     };
   }, [open, go, onClose]);
 
-  return (
+  // Phải portal ra thẳng <body>. Lightbox được render bên trong wrapper của
+  // app/(site)/template.tsx — wrapper đó mang clip-path, mà một ancestor có
+  // clip-path sẽ trở thành containing block cho con position:fixed. Nếu không
+  // portal, lớp phủ "fixed inset-0" bám theo chiều cao cả document thay vì
+  // viewport và bị cắt theo đường chéo của clip-path.
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && index !== null && (
         <motion.div
@@ -122,6 +132,7 @@ export function Lightbox({
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
