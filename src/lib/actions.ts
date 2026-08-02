@@ -1,7 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { hitLoginAttempt, resetLoginAttempts } from "@/lib/rate-limit";
 import {
   checkCredentials,
   createSession,
@@ -9,7 +11,7 @@ import {
   isAuthed,
 } from "@/lib/auth";
 import { getAdminClient, STORAGE_BUCKET } from "@/lib/supabase";
-import { clearSiteCache } from "@/lib/data";
+import { SITE_DATA_TAG } from "@/lib/data";
 import { slugify } from "@/lib/utils";
 
 type ActionState = { ok?: boolean; error?: string };
@@ -22,17 +24,32 @@ async function guard() {
 }
 
 function revalidateSite() {
-  clearSiteCache();
+  // revalidateTag hủy cache dùng chung cho MỌI instance serverless, khác với
+  // cache thủ công cũ vốn chỉ xóa được trong tiến trình đang chạy.
+  revalidateTag(SITE_DATA_TAG);
   revalidatePath("/", "layout");
 }
 
 /* ---------------- Auth ---------------- */
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  // Khóa theo IP người gọi. x-forwarded-for do proxy phía trước đặt (Vercel);
+  // lấy phần tử đầu là IP client. Không có header thì gộp chung một khóa —
+  // vẫn còn tác dụng chặn, chỉ là thô hơn.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+
+  const limit = hitLoginAttempt(ip);
+  if (!limit.allowed) {
+    const mins = Math.ceil(limit.retryAfterSec / 60);
+    return { error: `Quá nhiều lần thử. Vui lòng đợi ${mins} phút rồi thử lại.` };
+  }
+
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
   if (!checkCredentials(username, password)) {
     return { error: "Sai ID hoặc mật khẩu." };
   }
+  resetLoginAttempts(ip);
   await createSession();
   redirect("/pntarch/projects");
 }

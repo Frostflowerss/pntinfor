@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -21,6 +21,7 @@ export function Lightbox({
 }) {
   const open = index !== null;
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => setMounted(true), []);
 
   const go = useCallback(
@@ -34,24 +35,56 @@ export function Lightbox({
 
   useEffect(() => {
     if (!open) return;
+
+    // Trả focus về đúng ảnh đã bấm khi đóng, thay vì hất người dùng về đầu trang.
+    const opener = document.activeElement as HTMLElement | null;
+
+    const focusables = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      ).filter((el) => !el.hasAttribute("disabled"));
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "Escape") return onClose();
+      if (e.key === "ArrowRight") return go(1);
+      if (e.key === "ArrowLeft") return go(-1);
+      if (e.key !== "Tab") return;
+
+      // Nhốt Tab trong hộp thoại: nếu không, người dùng bàn phím sẽ tab ra nội
+      // dung phía sau lớp phủ mờ — vẫn focus được nhưng không nhìn thấy gì.
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    // Chờ một frame cho AnimatePresence gắn node vào DOM rồi mới focus.
+    const raf = requestAnimationFrame(() => focusables()[0]?.focus());
+
     return () => {
+      cancelAnimationFrame(raf);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      opener?.focus?.();
     };
   }, [open, go, onClose]);
 
   // Phải portal ra thẳng <body>. Lightbox được render bên trong wrapper của
-  // app/(site)/template.tsx — wrapper đó mang clip-path, mà một ancestor có
-  // clip-path sẽ trở thành containing block cho con position:fixed. Nếu không
-  // portal, lớp phủ "fixed inset-0" bám theo chiều cao cả document thay vì
-  // viewport và bị cắt theo đường chéo của clip-path.
+  // app/(site)/template.tsx, mà wrapper đó mang clip-path vĩnh viễn — một
+  // ancestor có clip-path cắt hình mọi con, kể cả con position:fixed. Đo được
+  // là lớp phủ mất góc trên-phải ở mọi vị trí cuộn, đúng chỗ đặt nút Đóng.
   if (!mounted) return null;
 
   return createPortal(
@@ -63,8 +96,10 @@ export function Lightbox({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
+          aria-label={`Xem ảnh ${index + 1} / ${items.length}`}
         >
           <button
             onClick={onClose}

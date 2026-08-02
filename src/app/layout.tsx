@@ -1,15 +1,57 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getSiteData } from "@/lib/data";
+import { darkenToContrast } from "@/lib/color";
+import { SITE_URL } from "@/lib/site";
+
+/**
+ * Font tự host qua next/font thay vì <link> tới fonts.googleapis.com.
+ * Bản cũ chặn render bằng một request tới host thứ ba (thêm RTT + FOUT), và
+ * gửi IP của mọi khách truy cập sang Google. next/font nhúng font vào cùng
+ * origin, tự sinh @font-face và tự chèn fallback khớp metric để giảm CLS.
+ */
+const display = Fraunces({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-display",
+  display: "swap",
+});
+const sans = Inter({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-sans",
+  display: "swap",
+});
+const mono = JetBrains_Mono({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0b0c0e" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f3ef" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const { profile } = await getSiteData();
   const title = `${profile.name} — ${profile.role}`;
+  const description = profile.summaryEN || `Portfolio of ${profile.name}, ${profile.role}.`;
   return {
     title: { default: title, template: `%s — ${profile.name}` },
-    description: profile.summaryEN || `Portfolio of ${profile.name}, ${profile.role}.`,
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-    openGraph: { title, description: profile.summaryEN, type: "website" },
+    description,
+    metadataBase: new URL(SITE_URL),
+    alternates: { canonical: "/" },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: "/",
+      siteName: profile.name,
+      locale: "vi_VN",
+    },
+    twitter: { card: "summary_large_image", title, description },
     robots: { index: true, follow: true },
   };
 }
@@ -26,17 +68,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { profile } = await getSiteData();
   const accent = safeColor(profile.accent, "#5c8cff");
   const en = safeColor(profile.enColor || profile.accent, "#7ea2ff");
-  const colorVars = `:root{--accent:${accent};--en:${en};}`;
+
+  // Ở theme sáng, accent/EN nguyên bản chỉ đạt ~2,2:1 trên nền giấy #f4f3ef —
+  // toàn bộ chữ tiếng Anh và dòng chức danh không đọc được. Tối màu vừa đủ để
+  // chạm ngưỡng AA 4,5:1 mà vẫn giữ đúng tông thương hiệu người dùng đã chọn.
+  const accentLight = darkenToContrast(accent);
+  const enLight = darkenToContrast(en);
+  const colorVars =
+    `:root{--accent:${accent};--en:${en};}` +
+    `:root[data-theme="light"]{--accent:${accentLight};--en:${enLight};}`;
 
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html
+      lang="vi"
+      suppressHydrationWarning
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
         <style dangerouslySetInnerHTML={{ __html: colorVars }} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

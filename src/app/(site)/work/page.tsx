@@ -23,7 +23,7 @@ export default async function WorkPage() {
           </p>
           <ScrollParallax distance={26}>
             <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5rem)] font-light leading-[0.95] tracking-tight">
-              <span className="vi">Dự án</span> <span className="en">Selected work</span>
+              <span className="vi">Dự án</span> <span lang="en" className="en">Selected work</span>
             </h1>
           </ScrollParallax>
           <p className="mt-5 text-balance text-fg-muted">
@@ -51,7 +51,7 @@ function EmptyState() {
   return (
     <div className="grid place-items-center rounded-2xl border border-dashed border-[var(--line)] py-24 text-center">
       <p className="vi text-lg">Chưa có dự án nào.</p>
-      <p className="en text-sm">No projects yet — add them in the studio.</p>
+      <p lang="en" className="en text-sm">No projects yet — add them in the studio.</p>
     </div>
   );
 }

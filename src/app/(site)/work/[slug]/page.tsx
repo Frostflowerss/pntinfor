@@ -63,7 +63,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
           </p>
           <h1 className="mt-4 font-display text-[clamp(2rem,6vw,4.5rem)] font-light leading-[0.98] tracking-tight">
             <span className="vi block">{project.titleVI}</span>
-            <span className="en mt-2 block text-[0.55em]">{project.titleEN}</span>
+            <span lang="en" className="en mt-2 block text-[0.55em]">{project.titleEN}</span>
           </h1>
         </header>
       </Reveal>
@@ -74,7 +74,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
             <div key={i} className="bg-[var(--ink-soft)] p-5">
               <m.icon size={16} className="text-accent" />
               <p className="vi mt-3 text-sm font-medium">{m.vi}</p>
-              <p className="en text-xs">{m.en}</p>
+              <p lang="en" className="en text-xs">{m.en}</p>
             </div>
           ))}
         </div>
@@ -87,7 +87,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
               Overview
             </h2>
             <p className="vi mt-4 leading-relaxed">{project.overviewVI}</p>
-            <p className="en mt-3 text-sm leading-relaxed">{project.overviewEN}</p>
+            <p lang="en" className="en mt-3 text-sm leading-relaxed">{project.overviewEN}</p>
 
             {project.responsibilitiesVI.length > 0 && (
               <>
@@ -98,7 +98,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
                   {project.responsibilitiesVI.map((r, i) => (
                     <li key={i} className="border-l border-accent/40 pl-4">
                       <span className="vi block text-sm leading-relaxed">{r}</span>
-                      <span className="en block text-xs leading-relaxed">
+                      <span lang="en" className="en block text-xs leading-relaxed">
                         {project.responsibilitiesEN[i] ?? ""}
                       </span>
                     </li>

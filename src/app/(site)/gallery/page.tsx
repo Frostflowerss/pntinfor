@@ -21,7 +21,7 @@ export default async function GalleryPage() {
             Gallery — {String(gallery.length).padStart(2, "0")}
           </p>
           <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5rem)] font-light leading-[0.95] tracking-tight">
-            <span className="vi">Thư viện</span> <span className="en">Gallery</span>
+            <span className="vi">Thư viện</span> <span lang="en" className="en">Gallery</span>
           </h1>
         </header>
       </Reveal>

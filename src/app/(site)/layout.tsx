@@ -16,7 +16,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       <MeshNetwork counts={counts} />
       <Header />
-      <main className="relative min-h-screen pt-28 sm:pt-32">{children}</main>
+      <main id="main" tabIndex={-1} className="relative min-h-screen pt-28 sm:pt-32">
+        {children}
+      </main>
       <Footer />
     </>
   );

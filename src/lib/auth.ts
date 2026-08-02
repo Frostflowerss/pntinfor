@@ -58,16 +58,29 @@ function verifyToken(token: string | undefined): boolean {
   }
 }
 
+/**
+ * So sánh chuỗi theo thời gian hằng định, an toàn với UTF-8.
+ *
+ * Cách cũ so `String.length` (đơn vị UTF-16) rồi mới đưa vào `Buffer.from()`
+ * (byte UTF-8). Một username như "é" dài 1 ký tự nhưng 2 byte sẽ lọt qua guard
+ * độ dài rồi làm `timingSafeEqual` ném RangeError — lỗi 500 thay vì "sai mật
+ * khẩu". Băm cả hai vế trước: SHA-256 luôn cho 32 byte nên phép so sánh không
+ * bao giờ lệch độ dài, và độ dài chuỗi gốc cũng không bị rò qua thời gian chạy.
+ */
+function safeEqual(a: string, b: string): boolean {
+  const ha = crypto.createHash("sha256").update(a, "utf8").digest();
+  const hb = crypto.createHash("sha256").update(b, "utf8").digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
 export function checkCredentials(username: string, password: string): boolean {
   const u = process.env.ADMIN_USERNAME ?? "";
   const p = process.env.ADMIN_PASSWORD ?? "";
   if (!u || !p) return false;
-  const uOk =
-    username.length === u.length &&
-    crypto.timingSafeEqual(Buffer.from(username), Buffer.from(u));
-  const pOk =
-    password.length === p.length &&
-    crypto.timingSafeEqual(Buffer.from(password), Buffer.from(p));
+  // Luôn chạy cả hai phép so sánh, không short-circuit, để thời gian phản hồi
+  // không tiết lộ việc username đúng hay sai.
+  const uOk = safeEqual(username, u);
+  const pOk = safeEqual(password, p);
   return uOk && pOk;
 }
 

@@ -8,9 +8,9 @@
    off-white type, a single precise azure accent, fine hairlines.
    ============================================================ */
 :root {
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  /* --font-display / --font-sans / --font-mono do next/font sinh ra và gắn
+     inline lên <html> (xem app/layout.tsx). Không khai báo lại ở đây, nếu không
+     sẽ chèn tên font thô và mất fallback khớp metric mà next/font tạo sẵn. */
 
   --ink: #0b0c0e;
   --ink-soft: #121317;
@@ -20,7 +20,9 @@
 
   --fg: #ecedf0;
   --fg-muted: rgba(236, 237, 240, 0.62);
-  --fg-faint: rgba(236, 237, 240, 0.38);
+  /* 0.38 chỉ đạt ~3,2:1 mà token này lại dùng cho chữ mono 10–11px — nhỏ nhất
+     site ở tương phản thấp nhất. 0.52 đưa lên ~5:1 (AA) mà vẫn giữ sắc thái mờ. */
+  --fg-faint: rgba(236, 237, 240, 0.52);
 
   --accent: #5c8cff;
   --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
@@ -41,7 +43,7 @@
 
   --fg: #15161a;
   --fg-muted: rgba(21, 22, 26, 0.64);
-  --fg-faint: rgba(21, 22, 26, 0.42);
+  --fg-faint: rgba(21, 22, 26, 0.62); /* 0.42 ≈ 2,7:1 → 0.62 ≈ 4,9:1 (AA) */
 
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
 
@@ -125,6 +127,38 @@ body {
     transparent
   );
   animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ---------- Hero entrance (CSS, không phụ thuộc JS) ----------
+   Hiệu ứng vào của hero từng chạy bằng framer-motion với initial opacity 0.
+   Nghĩa là chữ chỉ hiện SAU khi bundle JS tải xong và hydrate — đo được LCP
+   1792ms trong khi TTFB chỉ 11ms, vì phần tử opacity 0 không được tính LCP.
+   Animation thuần CSS chạy ngay từ lần paint đầu, không chờ hydrate.
+   Reduced-motion đã được khối @media phía dưới vô hiệu hóa; fill mode `both`
+   bảo đảm nội dung vẫn kết thúc ở trạng thái hiện đầy đủ. */
+@keyframes hero-rise {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-fade-up {
+  animation: hero-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ---------- Hover underline link ---------- */

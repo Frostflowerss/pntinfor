@@ -74,7 +74,8 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
         node: mix(base, tint, isLight() ? 0.0 : 0.55),
       };
     };
-    let colFrom = buildColors(), colTo = colFrom, colNow = buildColors();
+    let colFrom = buildColors(), colTo = colFrom;
+    const colNow = buildColors(); // chỉ ghi vào từng kênh, không gán lại cả object
     let colT0 = 0, colDur = 750;
     const startTransition = () => { colFrom = { ...colNow }; colTo = buildColors(); colT0 = performance.now(); colDur = 750; };
     const themeObs = new MutationObserver(startTransition);
@@ -197,10 +198,10 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     // ---------------- render loop ----------------
     const LINK = fine ? 118 : 96;
     const ATTRACT = 160;
-    let raf = 0, running = true, last = performance.now();
+    let raf = 0, running = true;
 
     const frame = (t: number) => {
-      last = t;
+
 
       // theme color lerp
       const p = colDur ? clamp((t - colT0) / colDur, 0, 1) : 1;
@@ -307,7 +308,7 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     // visibility + throttled resize/scroll
     const onVisible = () => {
       if (document.hidden) { running = false; cancelAnimationFrame(raf); }
-      else if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
+      else if (!running) { running = true; raf = requestAnimationFrame(frame); }
     };
     let rTimer = 0;
     const onResize = () => { clearTimeout(rTimer); rTimer = window.setTimeout(() => { setSize(); observeZones(); }, 160); };

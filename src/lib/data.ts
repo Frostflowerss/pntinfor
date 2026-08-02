@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+import { cache as reactCache } from "react";
 import { getPublicClient, isSupabaseConfigured } from "./supabase";
 import { fallbackData } from "./fallback";
 import type {
@@ -105,13 +107,10 @@ const mapShowcase = (r: any): HomeShowcaseImage => ({
   sortOrder: r.sort_order ?? 0,
 });
 
-let cache: { data: SiteData; at: number } | null = null;
-const TTL = 30_000;
+/** Tag để hủy cache khi admin lưu thay đổi (xem revalidateSite trong actions.ts). */
+export const SITE_DATA_TAG = "site-data";
 
-export async function getSiteData(): Promise<SiteData> {
-  if (!isSupabaseConfigured) return fallbackData;
-  if (cache && Date.now() - cache.at < TTL) return cache.data;
-
+async function fetchSiteData(): Promise<SiteData> {
   const supabase = getPublicClient();
   if (!supabase) return fallbackData;
 
@@ -143,16 +142,37 @@ export async function getSiteData(): Promise<SiteData> {
       gallery: gallery.data?.map(mapGallery) ?? [],
       homeShowcase: showcase.data?.map(mapShowcase) ?? [],
     };
-    cache = { data, at: Date.now() };
     return data;
-  } catch {
+  } catch (err) {
+    // Bản cũ nuốt lỗi im lặng: Supabase sập hoặc đổi schema là site âm thầm
+    // tụt về nội dung hardcode mà không có tín hiệu nào.
+    console.error("[data] getSiteData thất bại, dùng nội dung dự phòng:", err);
     return fallbackData;
   }
 }
 
-export function clearSiteCache() {
-  cache = null;
-}
+/**
+ * Cache liên-request, hủy theo tag.
+ *
+ * Bản cũ dùng một object ở module scope với TTL 30s. Trên serverless mỗi
+ * instance giữ bản sao riêng, nên clearSiteCache() chỉ xóa được đúng lambda vừa
+ * xử lý mutation — các instance khác vẫn trả nội dung cũ. Cộng với
+ * `revalidate = 60` ở mỗi page thành hai tầng cache lệch nhau, sửa nội dung
+ * trong panel có thể mất tới 90s mới lên và mỗi người xem thấy một bản khác.
+ *
+ * unstable_cache dùng chung một data cache cho mọi instance, và revalidateTag
+ * hủy đồng loạt ngay khi lưu.
+ */
+const cachedSiteData = unstable_cache(fetchSiteData, ["site-data"], {
+  tags: [SITE_DATA_TAG],
+  revalidate: 60,
+});
+
+/** reactCache gộp nhiều lần gọi trong cùng một lượt render thành một. */
+export const getSiteData = reactCache(async (): Promise<SiteData> => {
+  if (!isSupabaseConfigured) return fallbackData;
+  return cachedSiteData();
+});
 
 export async function getProject(slug: string): Promise<Project | null> {
   const data = await getSiteData();
