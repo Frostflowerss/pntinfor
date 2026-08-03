@@ -17,7 +17,7 @@ function SectionTitle({ index, vi, en }: { index: string; vi: string; en: string
     <div className="mb-8">
       <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-fg-faint">{index}</p>
       <h2 className="mt-2 font-display text-3xl font-light tracking-tight sm:text-4xl">
-        <span className="vi">{vi}</span> <span className="en text-2xl sm:text-3xl">{en}</span>
+        <span className="vi">{vi}</span> <span lang="en" className="en text-2xl sm:text-3xl">{en}</span>
       </h2>
     </div>
   );
@@ -56,7 +56,7 @@ export default async function AboutPage() {
             <section className="mb-20">
               <SectionTitle index="01" vi="Tóm tắt chuyên môn" en="Summary" />
               <p className="vi text-lg leading-relaxed">{profile.summaryVI}</p>
-              <p className="en mt-4 leading-relaxed">{profile.summaryEN}</p>
+              <p lang="en" className="en mt-4 leading-relaxed">{profile.summaryEN}</p>
             </section>
           </Reveal>
 
@@ -75,12 +75,12 @@ export default async function AboutPage() {
                       <span className="font-mono text-xs text-fg-faint">{e.timeframe}</span>
                     </div>
                     <p className="vi mt-1 text-sm">{e.roleVI}</p>
-                    <p className="en text-sm">{e.roleEN}</p>
+                    <p lang="en" className="en text-sm">{e.roleEN}</p>
                     <ul className="mt-4 space-y-3">
                       {e.achievementsVI.map((a, i) => (
                         <li key={i}>
                           <span className="vi block text-sm leading-relaxed">{a}</span>
-                          <span className="en block text-xs leading-relaxed">
+                          <span lang="en" className="en block text-xs leading-relaxed">
                             {e.achievementsEN[i] ?? ""}
                           </span>
                         </li>
@@ -103,7 +103,7 @@ export default async function AboutPage() {
                   <div className="rounded-xl border border-[var(--line)] bg-[var(--ink-soft)] p-5">
                     <h3 className="font-medium">{ed.name}</h3>
                     <p className="vi mt-1 text-sm text-fg-muted">{ed.descriptionVI}</p>
-                    <p className="en text-xs">{ed.descriptionEN}</p>
+                    <p lang="en" className="en text-xs">{ed.descriptionEN}</p>
                   </div>
                 </Reveal>
               ))}

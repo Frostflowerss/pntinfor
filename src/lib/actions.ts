@@ -1,7 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { hitLoginAttempt, resetLoginAttempts } from "@/lib/rate-limit";
 import {
   checkCredentials,
   createSession,
@@ -9,8 +11,9 @@ import {
   isAuthed,
 } from "@/lib/auth";
 import { getAdminClient, STORAGE_BUCKET } from "@/lib/supabase";
-import { clearSiteCache } from "@/lib/data";
+import { SITE_DATA_TAG } from "@/lib/data";
 import { slugify } from "@/lib/utils";
+import * as v from "@/lib/validate";
 
 type ActionState = { ok?: boolean; error?: string };
 
@@ -22,17 +25,36 @@ async function guard() {
 }
 
 function revalidateSite() {
-  clearSiteCache();
+  // revalidateTag hủy cache dùng chung cho MỌI instance serverless, khác với
+  // cache thủ công cũ vốn chỉ xóa được trong tiến trình đang chạy.
+  revalidateTag(SITE_DATA_TAG);
   revalidatePath("/", "layout");
+  // /work/[slug] dùng dynamicParams = false, nên danh sách slug hợp lệ đến từ
+  // generateStaticParams. Phải invalidate riêng route động này, nếu không dự án
+  // vừa thêm sẽ 404 cho tới lần deploy sau.
+  revalidatePath("/work/[slug]", "page");
 }
 
 /* ---------------- Auth ---------------- */
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  // Khóa theo IP người gọi. x-forwarded-for do proxy phía trước đặt (Vercel);
+  // lấy phần tử đầu là IP client. Không có header thì gộp chung một khóa —
+  // vẫn còn tác dụng chặn, chỉ là thô hơn.
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+
+  const limit = hitLoginAttempt(ip);
+  if (!limit.allowed) {
+    const mins = Math.ceil(limit.retryAfterSec / 60);
+    return { error: `Quá nhiều lần thử. Vui lòng đợi ${mins} phút rồi thử lại.` };
+  }
+
   const username = String(formData.get("username") ?? "");
   const password = String(formData.get("password") ?? "");
   if (!checkCredentials(username, password)) {
     return { error: "Sai ID hoặc mật khẩu." };
   }
+  resetLoginAttempts(ip);
   await createSession();
   redirect("/pntarch/projects");
 }
@@ -65,7 +87,7 @@ export async function saveProfile(formData: FormData) {
     id: 1,
     name: f("name"),
     role: f("role"),
-    email: f("email"),
+    email: v.email(f("email")),
     phone: f("phone"),
     address_vi: f("addressVI"),
     address_en: f("addressEN"),
@@ -79,8 +101,8 @@ export async function saveProfile(formData: FormData) {
     home_headline_en: f("homeHeadlineEN"),
     home_subline_vi: f("homeSublineVI"),
     home_subline_en: f("homeSublineEN"),
-    accent: f("accent") || "#5c8cff",
-    en_color: f("enColor"),
+    accent: v.hexColor(f("accent"), "#5c8cff"),
+    en_color: v.hexColor(f("enColor"), ""),
     card_aspect: f("cardAspect") || "16/11",
     avatar_aspect: f("avatarAspect") || "4/5",
     updated_at: new Date().toISOString(),
@@ -108,7 +130,7 @@ export async function saveExperience(formData: FormData) {
     role_en: f("roleEN"),
     achievements_vi: lines("achievementsVI"),
     achievements_en: lines("achievementsEN"),
-    sort_order: Number(f("sortOrder") || 0),
+    sort_order: v.intInRange(f("sortOrder"), 0, 9999, 0),
   };
   const q = id
     ? client.from("experiences").update(row).eq("id", id)
@@ -134,7 +156,7 @@ export async function saveEducation(formData: FormData) {
     name: f("name"),
     description_vi: f("descriptionVI"),
     description_en: f("descriptionEN"),
-    sort_order: Number(f("sortOrder") || 0),
+    sort_order: v.intInRange(f("sortOrder"), 0, 9999, 0),
   };
   const q = id
     ? client.from("education").update(row).eq("id", id)
@@ -157,10 +179,10 @@ export async function saveSkill(formData: FormData) {
   const f = (k: string) => String(formData.get(k) ?? "");
   const id = f("id");
   const row = {
-    title: f("title"),
-    level: f("level"),
-    percent: Number(f("percent") || 50),
-    sort_order: Number(f("sortOrder") || 0),
+    title: v.text(f("title"), 120),
+    level: v.skillLevel(f("level")),
+    percent: v.intInRange(f("percent"), 0, 100, 50),
+    sort_order: v.intInRange(f("sortOrder"), 0, 9999, 0),
   };
   const q = id ? client.from("skills").update(row).eq("id", id) : client.from("skills").insert(row);
   const { error } = await q;
@@ -206,7 +228,7 @@ export async function saveProject(formData: FormData) {
     featured: f("featured") === "on" || f("featured") === "true",
     featured_order: Number(f("featuredOrder") || 0),
     aspect: f("aspect"),
-    sort_order: Number(f("sortOrder") || 0),
+    sort_order: v.intInRange(f("sortOrder"), 0, 9999, 0),
   };
 
   let projectId = id;
@@ -222,10 +244,9 @@ export async function saveProject(formData: FormData) {
   // Detail images: JSON array of urls
   const imagesJson = f("imagesJson");
   if (imagesJson && projectId) {
-    let urls: string[] = [];
-    try {
-      urls = JSON.parse(imagesJson);
-    } catch {}
+    // JSON.parse trước đây được bọc try nhưng kết quả không hề kiểm kiểu:
+    // một payload như {"a":1} hay [1,2,3] vẫn đi thẳng xuống DB.
+    const urls = v.urlList(imagesJson);
     await client.from("project_images").delete().eq("project_id", projectId);
     if (urls.length) {
       await client.from("project_images").insert(

@@ -58,7 +58,7 @@ export function ProjectCard({
           <h3 className="vi font-display text-lg leading-snug tracking-tight transition-colors group-hover:text-accent sm:text-xl">
             {project.titleVI}
           </h3>
-          <p className="en text-sm leading-snug">{project.titleEN}</p>
+          <p lang="en" className="en text-sm leading-snug">{project.titleEN}</p>
           <p className="mt-auto pt-2 font-mono text-[11px] uppercase tracking-widest text-fg-faint">
             {project.locationEN}
           </p>

@@ -14,7 +14,7 @@ export function GalleryView({ images }: { images: GalleryImage[] }) {
     return (
       <div className="grid place-items-center rounded-2xl border border-dashed border-[var(--line)] py-24 text-center">
         <p className="vi text-lg">Chưa có ảnh trong thư viện.</p>
-        <p className="en text-sm">No images yet — upload them in the studio.</p>
+        <p lang="en" className="en text-sm">No images yet.</p>
       </div>
     );
   }

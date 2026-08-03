@@ -58,9 +58,12 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...        # anon public
 SUPABASE_SERVICE_ROLE_KEY=eyJ...            # service_role (TUYỆT ĐỐI không công khai)
 
-ADMIN_USERNAME=PNTARCH
-ADMIN_PASSWORD=!27021998
-ADMIN_SESSION_SECRET=  # dán 1 chuỗi ngẫu nhiên dài, vd chạy: openssl rand -hex 32
+ADMIN_USERNAME=<tên-đăng-nhập-của-bạn>
+ADMIN_PASSWORD=<mật-khẩu-mạnh-của-bạn>
+
+# BẮT BUỘC — khóa ký cookie phiên. Sinh bằng: openssl rand -hex 32
+# Thiếu biến này (hoặc ngắn hơn 32 ký tự) thì /pntarch sẽ báo lỗi, có chủ đích.
+ADMIN_SESSION_SECRET=<chuỗi-ngẫu-nhiên-64-ký-tự>
 
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
@@ -75,7 +78,7 @@ npm run dev
 ## 4. Dùng trang quản trị `/pntarch`
 
 1. Vào http://localhost:3000/pntarch
-2. Đăng nhập: **ID** `PNTARCH` · **Mật khẩu** `!27021998`
+2. Đăng nhập bằng `ADMIN_USERNAME` / `ADMIN_PASSWORD` đã đặt ở bước 3.
 3. Trong panel:
    - **Dự án → Thêm dự án:** điền tên (VI + EN), cấp công trình, địa điểm, vai trò, tổng quan, các đầu việc; **kéo–thả ảnh bìa và ảnh chi tiết** (tải thẳng lên Supabase, hiện thumbnail). Bấm *Tạo dự án*.
    - **Hồ sơ & Trang chủ:** ảnh đại diện, CV (PDF), liên hệ, tiêu đề + mô tả trang chủ, giới thiệu — tất cả có ô **VI và EN** riêng.
@@ -96,6 +99,9 @@ Mọi thay đổi xuất hiện trên web sau vài giây (web tự làm mới).
 ---
 
 ## Bảo mật & ghi chú
+- **Không bao giờ commit `.env.local`** — file này chứa `SUPABASE_SERVICE_ROLE_KEY` (khóa bypass toàn bộ RLS). `.gitignore` đã chặn sẵn.
+- **Không ghi mật khẩu thật vào README hay bất kỳ file nào trong repo.** Chỉ đặt trong biến môi trường (local: `.env.local`, production: Environment Variables của Vercel).
+- `ADMIN_SESSION_SECRET` là **bắt buộc** và phải dài ≥ 32 ký tự. App cố tình fail-closed nếu thiếu: không có giá trị mặc định, vì một khóa mặc định công khai đồng nghĩa ai cũng tự ký được cookie đăng nhập.
 - `SUPABASE_SERVICE_ROLE_KEY` chỉ dùng phía **server** (API/Server Action) sau khi đã đăng nhập admin — không bao giờ lộ ra trình duyệt.
 - Khách chỉ có quyền **đọc** dữ liệu (RLS). Ghi/sửa/tải ảnh chỉ thực hiện qua phiên đăng nhập admin.
 - Đổi `ADMIN_PASSWORD` và `ADMIN_SESSION_SECRET` bất cứ lúc nào trong biến môi trường.

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkPage() {
-  const { projects } = await getSiteData();
+  const { projects, profile } = await getSiteData();
 
   return (
     <div className="shell pb-10">
@@ -23,7 +23,7 @@ export default async function WorkPage() {
           </p>
           <ScrollParallax distance={26}>
             <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5rem)] font-light leading-[0.95] tracking-tight">
-              <span className="vi">Dự án</span> <span className="en">Selected work</span>
+              <span className="vi">Dự án</span> <span lang="en" className="en">Selected work</span>
             </h1>
           </ScrollParallax>
           <p className="mt-5 text-balance text-fg-muted">
@@ -38,7 +38,17 @@ export default async function WorkPage() {
         <Stagger className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((p, i) => (
             <StaggerItem key={p.id}>
-              <ProjectCard project={p} index={i} priority={i < 3} />
+              {/* Trang này trước đây không truyền aspect nên card luôn 16/11,
+                  bỏ qua profile.cardAspect — trong khi trang chủ lại tôn trọng
+                  nó, làm hai trang hiện cùng dự án với tỉ lệ khác nhau.
+                  priority chỉ cho card đầu: nhiều ảnh priority sẽ tranh băng
+                  thông với chính ứng viên LCP. */}
+              <ProjectCard
+                project={p}
+                index={i}
+                priority={i === 0}
+                aspect={p.aspect || profile.cardAspect}
+              />
             </StaggerItem>
           ))}
         </Stagger>
@@ -51,7 +61,7 @@ function EmptyState() {
   return (
     <div className="grid place-items-center rounded-2xl border border-dashed border-[var(--line)] py-24 text-center">
       <p className="vi text-lg">Chưa có dự án nào.</p>
-      <p className="en text-sm">No projects yet — add them in the studio.</p>
+      <p lang="en" className="en text-sm">No projects yet.</p>
     </div>
   );
 }

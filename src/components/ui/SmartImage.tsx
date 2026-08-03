@@ -32,10 +32,19 @@ function Placeholder({ className }: { className?: string }) {
   );
 }
 
-export function SmartImage({ src, alt, className, wrapperClassName, fill, ...rest }: Props) {
+export function SmartImage({
+  src,
+  alt,
+  className,
+  wrapperClassName,
+  fill,
+  priority,
+  ...rest
+}: Props) {
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  if (!src) {
+  if (!src || failed) {
     return (
       <div className={cn("relative overflow-hidden", wrapperClassName)}>
         <Placeholder className={className as string} />
@@ -43,17 +52,29 @@ export function SmartImage({ src, alt, className, wrapperClassName, fill, ...res
     );
   }
 
+  // Ảnh priority là ứng viên LCP. Cổng opacity-0 → chờ onLoad của React → fade
+  // 700ms khiến phần tử vô hình tại thời điểm paint đầu, mà phần tử opacity 0
+  // KHÔNG được tính vào LCP — hiệu ứng đẹp này tự đẩy lùi chính chỉ số nó nên
+  // giúp. Với ảnh priority thì vẽ thẳng, hiệu ứng chỉ áp cho ảnh dưới màn hình.
+  const fadeIn = !priority;
+
   return (
     <div className={cn("relative overflow-hidden", wrapperClassName)}>
-      {!loaded && <div className="skeleton absolute inset-0 z-10" />}
+      {fadeIn && !loaded && <div className="skeleton absolute inset-0 z-10" />}
       <Image
         src={src}
         alt={alt}
         fill={fill}
-        onLoad={() => setLoaded(true)}
+        priority={priority}
+        onLoad={fadeIn ? () => setLoaded(true) : undefined}
+        // Không có onError thì một URL Supabase hỏng sẽ để skeleton shimmer
+        // quay mãi và ảnh kẹt ở opacity 0 — người dùng nhìn thấy ô trống nhấp
+        // nháy vĩnh viễn. Rơi về placeholder blueprint cho dứt khoát.
+        onError={() => setFailed(true)}
         className={cn(
-          "transition-[opacity,transform,filter] duration-700 ease-smooth",
-          loaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-md scale-105",
+          fadeIn && "transition-[opacity,transform,filter] duration-700 ease-smooth",
+          fadeIn && !loaded && "opacity-0 blur-md scale-105",
+          fadeIn && loaded && "opacity-100 blur-0 scale-100",
           className
         )}
         {...rest}
