@@ -29,8 +29,17 @@ function Clock() {
         }).format(new Date())
       );
     tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
+    // Đồng hồ chỉ hiển thị giờ:phút nên nhịp 1s là 59 lần re-render thừa mỗi
+    // phút cho một chi tiết trang trí. Căn đúng mốc chuyển phút rồi chạy 60s.
+    let interval: ReturnType<typeof setInterval>;
+    const timeout = setTimeout(() => {
+      tick();
+      interval = setInterval(tick, 60_000);
+    }, 60_000 - (Date.now() % 60_000));
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, []);
   return <span suppressHydrationWarning>{t}</span>;
 }

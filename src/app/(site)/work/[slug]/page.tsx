@@ -3,11 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, MapPin, Layers, UserCog } from "lucide-react";
 import { getSiteData, getProject } from "@/lib/data";
+import { SITE_URL } from "@/lib/site";
 import { ProjectGallery } from "@/components/work/ProjectGallery";
 import { Reveal } from "@/components/ui/motion";
 import { classShort } from "@/lib/utils";
 
 export const revalidate = 60;
+// Slug không nằm trong generateStaticParams sẽ trả 404 thật thay vì dựng động.
+// Với ISR, notFound() trong route dựng động bị Next trả về HTTP 200 (soft 404)
+// — Google coi đó là trang hợp lệ và index một trang "không tìm thấy".
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const { projects } = await getSiteData();
@@ -25,7 +30,19 @@ export async function generateMetadata({
   return {
     title: project.titleEN,
     description: project.overviewEN,
-    openGraph: { images: project.coverUrl ? [project.coverUrl] : [] },
+    alternates: { canonical: `/work/${slug}` },
+    openGraph: {
+      title: project.titleEN,
+      description: project.overviewEN,
+      type: "article",
+      url: `/work/${slug}`,
+      images: project.coverUrl ? [project.coverUrl] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: project.titleEN,
+      description: project.overviewEN,
+    },
   };
 }
 
@@ -36,7 +53,8 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
   if (!project) notFound();
 
   const idx = data.projects.findIndex((p) => p.slug === slug);
-  const next = data.projects[(idx + 1) % data.projects.length];
+  // Chỉ có 1 dự án thì phép chia dư trỏ ngược về chính trang đang xem.
+  const next = data.projects.length > 1 ? data.projects[(idx + 1) % data.projects.length] : null;
 
   const meta = [
     { icon: Layers, vi: project.constructionClassVI, en: `Class ${classShort(project.constructionClassEN)}` },
@@ -46,8 +64,39 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
 
   const galleryImages = [project.coverUrl, ...project.images.map((i) => i.url)].filter(Boolean);
 
+  // CreativeWork + BreadcrumbList: giúp Google hiểu đây là một công trình cụ
+  // thể của một người cụ thể, và hiện đường dẫn phân cấp trong kết quả tìm kiếm.
+  const ld = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CreativeWork",
+        name: project.titleEN,
+        description: project.overviewEN || undefined,
+        image: project.coverUrl || undefined,
+        url: `${SITE_URL}/work/${project.slug}`,
+        creator: { "@type": "Person", name: data.profile.name },
+        locationCreated: project.locationEN
+          ? { "@type": "Place", name: project.locationEN }
+          : undefined,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Work", item: `${SITE_URL}/work` },
+          { "@type": "ListItem", position: 3, name: project.titleEN },
+        ],
+      },
+    ],
+  };
+
   return (
     <article className="shell pb-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
+      />
       <Link
         href="/work"
         className="group mb-10 inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg"
@@ -114,6 +163,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
         </div>
       </div>
 
+      {next && (
       <Reveal>
         <Link
           href={`/work/${next.slug}`}
@@ -133,6 +183,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
           />
         </Link>
       </Reveal>
+      )}
     </article>
   );
 }

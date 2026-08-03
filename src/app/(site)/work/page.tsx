@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WorkPage() {
-  const { projects } = await getSiteData();
+  const { projects, profile } = await getSiteData();
 
   return (
     <div className="shell pb-10">
@@ -38,7 +38,17 @@ export default async function WorkPage() {
         <Stagger className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((p, i) => (
             <StaggerItem key={p.id}>
-              <ProjectCard project={p} index={i} priority={i < 3} />
+              {/* Trang này trước đây không truyền aspect nên card luôn 16/11,
+                  bỏ qua profile.cardAspect — trong khi trang chủ lại tôn trọng
+                  nó, làm hai trang hiện cùng dự án với tỉ lệ khác nhau.
+                  priority chỉ cho card đầu: nhiều ảnh priority sẽ tranh băng
+                  thông với chính ứng viên LCP. */}
+              <ProjectCard
+                project={p}
+                index={i}
+                priority={i === 0}
+                aspect={p.aspect || profile.cardAspect}
+              />
             </StaggerItem>
           ))}
         </Stagger>
@@ -51,7 +61,7 @@ function EmptyState() {
   return (
     <div className="grid place-items-center rounded-2xl border border-dashed border-[var(--line)] py-24 text-center">
       <p className="vi text-lg">Chưa có dự án nào.</p>
-      <p lang="en" className="en text-sm">No projects yet — add them in the studio.</p>
+      <p lang="en" className="en text-sm">No projects yet.</p>
     </div>
   );
 }

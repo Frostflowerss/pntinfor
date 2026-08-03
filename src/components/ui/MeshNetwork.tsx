@@ -37,7 +37,13 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     const ctx = cv?.getContext("2d");
     if (!cv || !ctx) return;
 
-    const motion = !reduce;
+    // Với prefers-reduced-motion, bản cũ chỉ giảm biên độ dao động (mScale
+    // 0.18) nhưng vẫn chạy vòng lặp rAF vẽ canvas toàn màn hình 60fps vĩnh
+    // viễn — vừa tốn pin vừa đi ngược đúng thứ người dùng đã yêu cầu. Nay
+    // không dựng gì cả: nền động là trang trí thuần túy, bỏ hẳn được.
+    if (reduce) return;
+
+    const motion = true;
     const rand = (a: number, b: number) => a + Math.random() * (b - a);
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;

@@ -129,16 +129,16 @@ async function fetchSiteData(): Promise<SiteData> {
         supabase.from("home_showcase").select("*").order("sort_order"),
       ]);
 
+    // Chỉ dùng nội dung dự phòng khi TRUY VẤN LỖI (data == null), không dùng
+    // khi bảng rỗng. Bản cũ kiểm tra `.length` nên nếu admin xóa hết dòng của
+    // một mục thì site công khai lại âm thầm hiện lại nội dung hardcode, trong
+    // khi panel hiện trống — nội dung ma không cách nào gỡ được.
     const data: SiteData = {
       profile: profile.data ? mapProfile(profile.data) : fallbackData.profile,
-      experiences: experiences.data?.length
-        ? experiences.data.map(mapExperience)
-        : fallbackData.experiences,
-      education: education.data?.length
-        ? education.data.map(mapEducation)
-        : fallbackData.education,
-      skills: skills.data?.length ? skills.data.map(mapSkill) : fallbackData.skills,
-      projects: projects.data?.length ? projects.data.map(mapProject) : fallbackData.projects,
+      experiences: experiences.data ? experiences.data.map(mapExperience) : fallbackData.experiences,
+      education: education.data ? education.data.map(mapEducation) : fallbackData.education,
+      skills: skills.data ? skills.data.map(mapSkill) : fallbackData.skills,
+      projects: projects.data ? projects.data.map(mapProject) : fallbackData.projects,
       gallery: gallery.data?.map(mapGallery) ?? [],
       homeShowcase: showcase.data?.map(mapShowcase) ?? [],
     };

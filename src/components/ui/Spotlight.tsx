@@ -102,22 +102,3 @@ export function ProximityGlow({
     </div>
   );
 }
-
-export function Bilingual({
-  vi,
-  en,
-  className,
-  enClassName,
-}: {
-  vi: string;
-  en?: string;
-  className?: string;
-  enClassName?: string;
-}) {
-  return (
-    <span className={className}>
-      <span className="vi block">{vi}</span>
-      {en ? <span className={`en block ${enClassName ?? ""}`}>{en}</span> : null}
-    </span>
-  );
-}
