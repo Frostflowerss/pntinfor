@@ -38,7 +38,13 @@ export function ProjectForm({ project, nextOrder }: { project?: Project; nextOrd
           <MultiImageUploader
             name="imagesJson"
             folder="projects"
-            initial={project?.images.map((i) => i.url) ?? []}
+            initial={
+              project?.images.map((i) => ({
+                url: i.url,
+                width: i.width,
+                height: i.height,
+              })) ?? []
+            }
           />
         </section>
 

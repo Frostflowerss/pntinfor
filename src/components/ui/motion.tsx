@@ -3,12 +3,21 @@
 import { motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-const ease = [0.22, 1, 0.36, 1] as const;
+/**
+ * Bộ nguyên hàm chuyển động dùng chung.
+ *
+ * Thang giá trị khớp với các biến --dur-* / --ease-out trong globals.css. Chủ
+ * trương: mờ dần dẫn dắt, dịch chuyển chỉ phụ họa (14px, không phải 24px), và
+ * dừng bằng đường cong giảm tốc sâu để không thấy điểm kết.
+ */
+const EASE = [0.16, 1, 0.3, 1] as const;
+const DUR = 0.48;
+const RISE = 14;
 
 export function Reveal({
   children,
   delay = 0,
-  y = 24,
+  y = RISE,
   className,
   as = "div",
 }: {
@@ -25,8 +34,10 @@ export function Reveal({
       className={className}
       initial={reduce ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-12% 0px" }}
-      transition={{ duration: 0.7, ease, delay }}
+      // margin âm nhỏ: phần tử hiện khi đã vào hẳn trong khung nhìn, tránh cảm
+      // giác nội dung "đuổi theo" lúc cuộn nhanh.
+      viewport={{ once: true, margin: "-8% 0px" }}
+      transition={{ duration: DUR, ease: EASE, delay }}
     >
       {children}
     </MotionTag>
@@ -35,11 +46,13 @@ export function Reveal({
 
 const container: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
+  // Nhịp so le thưa hơn (0.08 -> 0.06) để lưới dự án hiện thành một mảng liền
+  // mạch thay vì đếm được từng ô.
+  show: { transition: { staggerChildren: 0.06 } },
 };
 const item: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease } },
+  hidden: { opacity: 0, y: RISE },
+  show: { opacity: 1, y: 0, transition: { duration: DUR, ease: EASE } },
 };
 
 export function Stagger({ children, className }: { children: ReactNode; className?: string }) {
@@ -50,7 +63,7 @@ export function Stagger({ children, className }: { children: ReactNode; classNam
       variants={container}
       initial={reduce ? false : "hidden"}
       whileInView="show"
-      viewport={{ once: true, margin: "-10% 0px" }}
+      viewport={{ once: true, margin: "-8% 0px" }}
     >
       {children}
     </motion.div>
@@ -65,7 +78,7 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
   );
 }
 
-/** B6 "Mask reveal": content slides up through a thin slit on enter. */
+/** Chữ trượt lên sau một khe hẹp — dành riêng cho tiêu đề lớn. */
 export function MaskReveal({
   children,
   delay = 0,
@@ -84,10 +97,10 @@ export function MaskReveal({
     <Tag className={`block overflow-hidden ${className ?? ""}`}>
       <motion.span
         className="block"
-        initial={{ y: "115%" }}
+        initial={{ y: "100%" }}
         whileInView={{ y: 0 }}
-        viewport={{ once: true, margin: "-10% 0px" }}
-        transition={{ duration: 0.8, ease, delay }}
+        viewport={{ once: true, margin: "-8% 0px" }}
+        transition={{ duration: 0.76, ease: EASE, delay }}
       >
         {children}
       </motion.span>
@@ -98,7 +111,7 @@ export function MaskReveal({
 export function CountUp({
   to,
   suffix = "",
-  duration = 1.6,
+  duration = 1.4,
   className,
 }: {
   to: number;
@@ -107,7 +120,7 @@ export function CountUp({
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-20%" });
+  const inView = useInView(ref, { once: true, margin: "-15%" });
   const reduce = useReducedMotion();
   const [val, setVal] = useState(0);
 
@@ -121,7 +134,8 @@ export function CountUp({
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min((now - start) / (duration * 1000), 1);
-      const eased = 1 - Math.pow(1 - t, 3);
+      // Giảm tốc mạnh: số nhảy nhanh lúc đầu rồi dừng hẳn, không lê thê ở cuối.
+      const eased = 1 - Math.pow(1 - t, 4);
       setVal(Math.round(eased * to));
       if (t < 1) raf = requestAnimationFrame(tick);
     };

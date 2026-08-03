@@ -27,15 +27,18 @@ export function GalleryView({ images }: { images: GalleryImage[] }) {
             <button
               onClick={() => setIndex(i)}
               className="group block w-full overflow-hidden rounded-xl border border-[var(--line)]"
-              aria-label={`Open image ${i + 1}`}
+              aria-label={`Phóng to ảnh ${i + 1}`}
             >
+              {/* Kích thước thật nếu có. Trước đây chỉ chia làm hai rổ
+                  dọc/ngang (800x1100 hoặc 800x560) rồi object-cover — mọi ảnh
+                  không rơi đúng hai tỉ lệ đó đều bị xén. */}
               <SmartImage
                 src={g.url}
-                alt={g.alt || "Gallery image"}
-                width={800}
-                height={g.orientation === "vertical" ? 1100 : 560}
+                alt={g.alt || `Ảnh thư viện ${i + 1}`}
+                width={g.width ?? 800}
+                height={g.height ?? (g.orientation === "vertical" ? 1100 : 560)}
                 sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-                className="h-auto w-full object-cover transition-transform duration-700 ease-smooth group-hover:scale-[1.04]"
+                className="h-auto w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                 wrapperClassName="w-full"
               />
             </button>

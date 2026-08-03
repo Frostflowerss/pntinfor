@@ -1,9 +1,10 @@
-import { adminGetProjects } from "@/lib/admin-data";
+import { adminCountProjects } from "@/lib/admin-data";
 import { ProjectForm } from "@/components/admin/ProjectForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewProject() {
-  const projects = await adminGetProjects();
-  return <ProjectForm nextOrder={projects.length} />;
+  // Chỉ cần số lượng để đặt sort_order mặc định — không cần kéo cả bảng về.
+  const count = await adminCountProjects();
+  return <ProjectForm nextOrder={count} />;
 }

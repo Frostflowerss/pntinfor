@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Tilt } from "@/components/ui/Interactive";
 import { SmartImage } from "@/components/ui/SmartImage";
 import { classShort } from "@/lib/utils";
 import type { Project } from "@/lib/types";
@@ -18,8 +17,11 @@ export function ProjectCard({
   priority?: boolean;
   aspect?: string;
 }) {
+  // Bỏ hiệu ứng nghiêng theo chuột: mỗi card từng là một client component gắn
+  // listener chuột riêng, 10 dự án là 10 listener chỉ để nghiêng 5 độ. Hiệu ứng
+  // phóng ảnh + hiện mũi tên khi hover đã đủ phản hồi, và làm hoàn toàn bằng CSS.
   return (
-    <Tilt max={5} className="h-full">
+    <div className="h-full">
       <Link
         href={`/work/${project.slug}`}
         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink-soft)] transition-colors hover:border-[color-mix(in_srgb,var(--accent)_50%,var(--line))]"
@@ -35,7 +37,7 @@ export function ProjectCard({
             fill
             sizes="(max-width:768px) 100vw, (max-width:1024px) 50vw, 33vw"
             priority={priority}
-            className="object-cover transition-transform duration-700 ease-smooth group-hover:scale-[1.06]"
+            className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
             wrapperClassName="absolute inset-0"
           />
           {/* faint top scrim only for badge legibility */}
@@ -48,7 +50,7 @@ export function ProjectCard({
             {String(index + 1).padStart(2, "0")}
           </span>
 
-          <span className="absolute bottom-3 right-3 grid h-9 w-9 translate-y-2 place-items-center rounded-full bg-accent text-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          <span className="absolute bottom-3 right-3 grid h-9 w-9 translate-y-1.5 place-items-center rounded-full bg-accent text-white opacity-0 shadow-lg transition-all duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100">
             <ArrowUpRight size={17} />
           </span>
         </div>
@@ -64,6 +66,6 @@ export function ProjectCard({
           </p>
         </div>
       </Link>
-    </Tilt>
+    </div>
   );
 }

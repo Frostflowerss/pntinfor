@@ -2,11 +2,11 @@ import { adminGetSkills } from "@/lib/admin-data";
 import { saveSkill, deleteSkill } from "@/lib/actions";
 import { Field, SubmitButton } from "@/components/admin/ui";
 import { DeleteButton } from "@/components/admin/DeleteButton";
-import type { Skill } from "@/lib/types";
+import { SKILL_LEVELS, type Skill } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const LEVELS = ["Expert", "Experienced", "Skillful", "Beginner"];
+
 const selectCls =
   "w-full rounded-lg border border-[var(--line)] bg-[var(--ink-soft)] px-3 py-2.5 text-sm outline-none focus:border-accent";
 
@@ -21,7 +21,7 @@ function SkillForm({ skill, order }: { skill?: Skill; order: number }) {
       <label className="block">
         <span className="mb-1.5 block text-xs font-medium text-fg-muted">Trình độ</span>
         <select name="level" defaultValue={skill?.level ?? "Skillful"} className={selectCls}>
-          {LEVELS.map((l) => (
+          {SKILL_LEVELS.map((l) => (
             <option key={l} value={l}>
               {l}
             </option>

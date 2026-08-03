@@ -52,7 +52,7 @@ const config: Config = {
         },
       },
       animation: {
-        marquee: "marquee 40s linear infinite",
+        marquee: "marquee 64s linear infinite",
         shimmer: "shimmer 1.8s ease-in-out infinite",
         "fade-in": "fade-in 0.4s ease-out both",
       },

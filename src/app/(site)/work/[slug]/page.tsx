@@ -62,7 +62,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
     { icon: UserCog, vi: project.primaryRoleVI, en: project.primaryRoleEN },
   ];
 
-  const galleryImages = [project.coverUrl, ...project.images.map((i) => i.url)].filter(Boolean);
+  const galleryImages = [
+    // Ảnh bìa chưa có cột kích thước riêng nên để null, component tự dùng tỉ lệ dự phòng.
+    ...(project.coverUrl ? [{ url: project.coverUrl, width: null, height: null }] : []),
+    ...project.images.map((i) => ({ url: i.url, width: i.width, height: i.height })),
+  ];
 
   // CreativeWork + BreadcrumbList: giúp Google hiểu đây là một công trình cụ
   // thể của một người cụ thể, và hiện đường dẫn phân cấp trong kết quả tìm kiếm.
