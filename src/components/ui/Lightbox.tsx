@@ -81,10 +81,11 @@ export function Lightbox({
     };
   }, [open, go, onClose]);
 
-  // Phải portal ra thẳng <body>. Lightbox được render bên trong wrapper của
-  // app/(site)/template.tsx, mà wrapper đó mang clip-path vĩnh viễn — một
-  // ancestor có clip-path cắt hình mọi con, kể cả con position:fixed. Đo được
-  // là lớp phủ mất góc trên-phải ở mọi vị trí cuộn, đúng chỗ đặt nút Đóng.
+  // Portal ra thẳng <body>. Ban đầu đây là cách chữa cháy cho clip-path ở
+  // template.tsx (ancestor có clip-path cắt hình cả con position:fixed, làm mất
+  // góc trên-phải của lớp phủ — đúng chỗ đặt nút Đóng). clip-path nay đã bỏ,
+  // nhưng vẫn giữ portal: một hộp thoại toàn màn hình không nên phụ thuộc vào
+  // việc không ancestor nào tạo ngữ cảnh xếp lớp hay cắt tràn.
   if (!mounted) return null;
 
   return createPortal(
@@ -137,10 +138,10 @@ export function Lightbox({
           <motion.div
             key={index}
             className="relative h-[74vh] w-[min(84vw,1100px)] sm:h-[82vh] sm:w-[min(88vw,1100px)]"
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, scale: 0.985 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, scale: 0.99 }}
+            transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}

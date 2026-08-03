@@ -48,7 +48,7 @@ export function ProjectGallery({
                   width={w}
                   height={h}
                   sizes="(max-width:640px) 100vw, 50vw"
-                  className="h-auto w-full transition-transform duration-700 ease-smooth group-hover:scale-[1.03]"
+                  className="h-auto w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                   wrapperClassName="w-full"
                 />
               </button>

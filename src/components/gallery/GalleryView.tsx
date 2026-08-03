@@ -38,7 +38,7 @@ export function GalleryView({ images }: { images: GalleryImage[] }) {
                 width={g.width ?? 800}
                 height={g.height ?? (g.orientation === "vertical" ? 1100 : 560)}
                 sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-                className="h-auto w-full transition-transform duration-700 ease-smooth group-hover:scale-[1.04]"
+                className="h-auto w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.02]"
                 wrapperClassName="w-full"
               />
             </button>

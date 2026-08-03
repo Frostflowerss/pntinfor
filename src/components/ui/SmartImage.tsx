@@ -72,8 +72,8 @@ export function SmartImage({
         // nháy vĩnh viễn. Rơi về placeholder blueprint cho dứt khoát.
         onError={() => setFailed(true)}
         className={cn(
-          fadeIn && "transition-[opacity,transform,filter] duration-700 ease-smooth",
-          fadeIn && !loaded && "opacity-0 blur-md scale-105",
+          fadeIn && "transition-[opacity,transform,filter] duration-[760ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+          fadeIn && !loaded && "opacity-0 blur-[6px] scale-[1.02]",
           fadeIn && loaded && "opacity-100 blur-0 scale-100",
           className
         )}

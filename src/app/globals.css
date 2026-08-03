@@ -32,6 +32,23 @@
 
   --radius: 14px;
   --shell-pad: clamp(1.25rem, 5vw, 4rem);
+
+  /* ---------- Thang chuyển động ----------
+     Trước đây mỗi component tự chọn thời lượng và đường cong riêng (0.35s,
+     0.6s, 0.7s, 0.8s, 0.9s, 1s, cộng một spring nảy ở thanh nav), nên tổng thể
+     nhìn rời rạc. Ba mốc thời lượng và hai đường cong dùng chung cho cả site.
+
+     Nguyên tắc: ưu tiên mờ dần, hạn chế dịch chuyển. Quãng đường ngắn và điểm
+     dừng êm cho cảm giác điềm đạm; biên độ lớn và spring nảy cho cảm giác vui
+     nhộn — không hợp với hồ sơ nghề nghiệp ngành kiến trúc. */
+  --dur-fast: 240ms;
+  --dur-base: 480ms;
+  --dur-slow: 760ms;
+  /* Giảm tốc sâu, dừng gần như không thấy điểm kết. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Quãng dịch chuyển tiêu chuẩn khi phần tử xuất hiện. */
+  --rise: 14px;
 }
 
 :root[data-theme="light"] {
@@ -138,7 +155,7 @@ body {
    bảo đảm nội dung vẫn kết thúc ở trạng thái hiện đầy đủ. */
 @keyframes hero-rise {
   from {
-    transform: translateY(110%);
+    transform: translateY(100%);
   }
   to {
     transform: translateY(0);
@@ -147,18 +164,21 @@ body {
 @keyframes hero-fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(var(--rise));
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
+/* Chữ lớn trượt lên sau một khe hẹp — kiểu mở màn quen thuộc của các studio
+   kiến trúc. Giữ lại vì nó là nét nhận diện, nhưng đi chậm hơn và dừng êm hơn
+   để thành trang trọng thay vì giật cục. */
 .hero-rise {
-  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: hero-rise var(--dur-slow) var(--ease-out) both;
 }
 .hero-fade-up {
-  animation: hero-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: hero-fade-up var(--dur-base) var(--ease-out) both;
 }
 
 /* ---------- Hover underline link ---------- */

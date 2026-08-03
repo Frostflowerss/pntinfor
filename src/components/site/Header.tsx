@@ -65,7 +65,7 @@ export function Header() {
         <motion.nav
           initial={{ y: -16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
           className="glass pointer-events-auto flex items-center gap-1 rounded-full p-1.5 shadow-2xl shadow-black/30"
         >
           {NAV.map(({ href, label, icon: Icon }) => {
@@ -90,7 +90,8 @@ export function Header() {
                   <motion.span
                     layoutId="nav-pill"
                     className="absolute inset-0 rounded-full bg-[var(--accent-soft)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    // Spring nảy đọc ra là "vui nhộn"; tween giảm tốc đọc ra là "chính xác".
+                    transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
                   />
                 )}
                 <Icon size={16} aria-hidden className="relative z-10" />

@@ -37,7 +37,7 @@ export function ProjectCard({
             fill
             sizes="(max-width:768px) 100vw, (max-width:1024px) 50vw, 33vw"
             priority={priority}
-            className="object-cover transition-transform duration-700 ease-smooth group-hover:scale-[1.06]"
+            className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
             wrapperClassName="absolute inset-0"
           />
           {/* faint top scrim only for badge legibility */}
@@ -50,7 +50,7 @@ export function ProjectCard({
             {String(index + 1).padStart(2, "0")}
           </span>
 
-          <span className="absolute bottom-3 right-3 grid h-9 w-9 translate-y-2 place-items-center rounded-full bg-accent text-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          <span className="absolute bottom-3 right-3 grid h-9 w-9 translate-y-1.5 place-items-center rounded-full bg-accent text-white opacity-0 shadow-lg transition-all duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100">
             <ArrowUpRight size={17} />
           </span>
         </div>

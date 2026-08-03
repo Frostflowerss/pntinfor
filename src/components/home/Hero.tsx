@@ -24,7 +24,7 @@ export function Hero({ profile }: { profile: Profile }) {
 
         <div className="grid items-end gap-12 lg:grid-cols-[1.4fr_1fr]">
           <div>
-            <MouseParallax strength={8}>
+            <MouseParallax strength={5}>
               <h1 className="font-display text-[clamp(2.75rem,9vw,7rem)] font-light leading-[0.92] tracking-[-0.02em]">
               {words.map((w, i) => (
                 <span key={i} className="block overflow-hidden">
@@ -68,9 +68,9 @@ export function Hero({ profile }: { profile: Profile }) {
             </div>
           </div>
 
-          <ScrollParallax distance={42} className="flex justify-center lg:justify-end">
-            <MouseParallax strength={22}>
-              <Tilt max={7}>
+          <ScrollParallax distance={26} className="flex justify-center lg:justify-end">
+            <MouseParallax strength={10}>
+              <Tilt max={4}>
                 {/* Ảnh này mang priority, tức là ứng viên LCP trên màn rộng.
                     Không bọc nó trong hiệu ứng mờ dần nữa — trước đây delay
                     0.4s + fade 1s làm chính ảnh được ưu tiên lại hiện sau cùng. */}
