@@ -65,13 +65,32 @@ export async function logoutAction() {
 }
 
 /* ---------------- Storage ---------------- */
-export async function deleteStorageObject(url: string) {
-  const client = await guard();
+/**
+ * Xóa tệp khỏi Storage theo URL công khai.
+ *
+ * KHÔNG export: mọi hàm async được export từ file "use server" đều trở thành
+ * một endpoint mạng công khai, mà hàm này chỉ dùng nội bộ. Trước đây nó vừa
+ * được export vừa không có ai gọi — nghĩa là ảnh xóa khỏi database nhưng tệp
+ * vẫn nằm lại trong bucket mãi mãi, ngày càng nhiều rác và vẫn truy cập được
+ * qua URL cũ.
+ */
+async function removeStorageFiles(
+  client: NonNullable<ReturnType<typeof getAdminClient>>,
+  urls: (string | null | undefined)[]
+) {
   const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
-  const idx = url.indexOf(marker);
-  if (idx === -1) return;
-  const path = url.slice(idx + marker.length);
-  await client.storage.from(STORAGE_BUCKET).remove([path]);
+  const paths = urls
+    .filter((u): u is string => Boolean(u))
+    .map((u) => {
+      const idx = u.indexOf(marker);
+      return idx === -1 ? null : u.slice(idx + marker.length);
+    })
+    .filter((p): p is string => Boolean(p));
+
+  if (paths.length === 0) return;
+  const { error } = await client.storage.from(STORAGE_BUCKET).remove(paths);
+  // Dọn rác là việc phụ: không được làm hỏng thao tác xóa chính.
+  if (error) console.error("[actions] xóa tệp trong Storage thất bại:", error.message);
 }
 
 /* ---------------- Profile ---------------- */
@@ -267,16 +286,22 @@ export async function saveProject(formData: FormData) {
 
 export async function deleteProject(id: string) {
   const client = await guard();
+  // Thu thập URL trước khi xóa dòng, nếu không sẽ mất dấu tệp cần dọn.
+  const [{ data: project }, { data: images }] = await Promise.all([
+    client.from("projects").select("cover_url").eq("id", id).maybeSingle(),
+    client.from("project_images").select("url").eq("project_id", id),
+  ]);
+
   await client.from("project_images").delete().eq("project_id", id);
   await client.from("projects").delete().eq("id", id);
+
+  await removeStorageFiles(client, [
+    project?.cover_url,
+    ...(images ?? []).map((i: { url: string | null }) => i.url),
+  ]);
   revalidateSite();
 }
 
-export async function reorderProject(id: string, sortOrder: number) {
-  const client = await guard();
-  await client.from("projects").update({ sort_order: sortOrder }).eq("id", id);
-  revalidateSite();
-}
 
 export async function toggleProjectFeatured(id: string, featured: boolean) {
   const client = await guard();
@@ -319,6 +344,8 @@ export async function updateGalleryImage(id: string, orientation: string) {
 
 export async function deleteGalleryImage(id: string) {
   const client = await guard();
+  const { data } = await client.from("gallery_images").select("url").eq("id", id).maybeSingle();
   await client.from("gallery_images").delete().eq("id", id);
+  await removeStorageFiles(client, [data?.url]);
   revalidateSite();
 }

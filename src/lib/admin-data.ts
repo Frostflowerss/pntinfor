@@ -1,144 +1,108 @@
 import "server-only";
 import { getAdminClient } from "@/lib/supabase";
 import {
-  type Profile,
-  type Experience,
-  type Education,
-  type Skill,
-  type Project,
-  type GalleryImage,
+  mapProfile,
+  mapExperience,
+  mapEducation,
+  mapSkill,
+  mapProject,
+  mapGallery,
+} from "@/lib/mappers";
+import type {
+  Profile,
+  Experience,
+  Education,
+  Skill,
+  Project,
+  GalleryImage,
 } from "@/lib/types";
 import { fallbackData } from "@/lib/fallback";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const arr = (v: any): string[] => (Array.isArray(v) ? v : []);
+/**
+ * Đọc dữ liệu cho panel quản trị (dùng service role, bỏ qua RLS).
+ *
+ * Toàn bộ phần chuyển đổi dòng dữ liệu đã chuyển sang lib/mappers.ts — trước
+ * đây file này giữ một bản sao gần như nguyên văn của data.ts, khoảng 120 dòng
+ * trùng lặp và đã bắt đầu lệch nhau.
+ */
 
 export async function adminGetProfile(): Promise<Profile> {
   const c = getAdminClient();
   if (!c) return fallbackData.profile;
-  const { data } = await c.from("profile").select("*").eq("id", 1).maybeSingle();
+  const { data, error } = await c.from("profile").select("*").eq("id", 1).maybeSingle();
+  if (error) console.error("[admin-data] adminGetProfile:", error.message);
   if (!data) return fallbackData.profile;
-  return {
-    name: data.name ?? "",
-    role: data.role ?? "",
-    email: data.email ?? "",
-    phone: data.phone ?? "",
-    addressVI: data.address_vi ?? "",
-    addressEN: data.address_en ?? "",
-    locationLabel: data.location_label ?? "",
-    languages: arr(data.languages),
-    avatarUrl: data.avatar_url ?? "",
-    cvUrl: data.cv_url ?? "",
-    summaryVI: data.summary_vi ?? "",
-    summaryEN: data.summary_en ?? "",
-    homeHeadlineVI: data.home_headline_vi ?? "",
-    homeHeadlineEN: data.home_headline_en ?? "",
-    homeSublineVI: data.home_subline_vi ?? "",
-    homeSublineEN: data.home_subline_en ?? "",
-    accent: data.accent || "#5c8cff",
-    enColor: data.en_color ?? "",
-    cardAspect: data.card_aspect || "16/11",
-    avatarAspect: data.avatar_aspect || "4/5",
-  };
+  return mapProfile(data);
 }
 
 export async function adminGetExperiences(): Promise<Experience[]> {
   const c = getAdminClient();
   if (!c) return [];
-  const { data } = await c.from("experiences").select("*").order("sort_order");
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    company: r.company ?? "",
-    timeframe: r.timeframe ?? "",
-    roleVI: r.role_vi ?? "",
-    roleEN: r.role_en ?? "",
-    achievementsVI: arr(r.achievements_vi),
-    achievementsEN: arr(r.achievements_en),
-    sortOrder: r.sort_order ?? 0,
-  }));
+  const { data, error } = await c.from("experiences").select("*").order("sort_order");
+  if (error) console.error("[admin-data] adminGetExperiences:", error.message);
+  return (data ?? []).map(mapExperience);
 }
 
 export async function adminGetEducation(): Promise<Education[]> {
   const c = getAdminClient();
   if (!c) return [];
-  const { data } = await c.from("education").select("*").order("sort_order");
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    name: r.name ?? "",
-    descriptionVI: r.description_vi ?? "",
-    descriptionEN: r.description_en ?? "",
-    sortOrder: r.sort_order ?? 0,
-  }));
+  const { data, error } = await c.from("education").select("*").order("sort_order");
+  if (error) console.error("[admin-data] adminGetEducation:", error.message);
+  return (data ?? []).map(mapEducation);
 }
 
 export async function adminGetSkills(): Promise<Skill[]> {
   const c = getAdminClient();
   if (!c) return [];
-  const { data } = await c.from("skills").select("*").order("sort_order");
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    title: r.title ?? "",
-    level: r.level ?? "Skillful",
-    percent: r.percent ?? 50,
-    sortOrder: r.sort_order ?? 0,
-  }));
+  const { data, error } = await c.from("skills").select("*").order("sort_order");
+  if (error) console.error("[admin-data] adminGetSkills:", error.message);
+  return (data ?? []).map(mapSkill);
 }
 
 export async function adminGetProjects(): Promise<Project[]> {
   const c = getAdminClient();
   if (!c) return [];
-  const { data } = await c
+  const { data, error } = await c
     .from("projects")
     .select("*, project_images(*)")
     .order("sort_order");
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    slug: r.slug ?? r.id,
-    titleVI: r.title_vi ?? "",
-    titleEN: r.title_en ?? "",
-    constructionClassVI: r.construction_class_vi ?? "",
-    constructionClassEN: r.construction_class_en ?? "",
-    locationVI: r.location_vi ?? "",
-    locationEN: r.location_en ?? "",
-    primaryRoleVI: r.primary_role_vi ?? "",
-    primaryRoleEN: r.primary_role_en ?? "",
-    overviewVI: r.overview_vi ?? "",
-    overviewEN: r.overview_en ?? "",
-    responsibilitiesVI: arr(r.responsibilities_vi),
-    responsibilitiesEN: arr(r.responsibilities_en),
-    coverUrl: r.cover_url ?? "",
-    images: (r.project_images ?? [])
-      .map((i: any) => ({
-        id: i.id,
-        url: i.url,
-        width: i.width ?? null,
-        height: i.height ?? null,
-        sortOrder: i.sort_order ?? 0,
-      }))
-      .sort((a: any, b: any) => a.sortOrder - b.sortOrder),
-    featured: r.featured ?? false,
-    featuredOrder: r.featured_order ?? 0,
-    aspect: r.aspect ?? "",
-    sortOrder: r.sort_order ?? 0,
-  }));
+  if (error) console.error("[admin-data] adminGetProjects:", error.message);
+  return (data ?? []).map(mapProject);
 }
 
+/**
+ * Lấy một dự án theo id.
+ * Trước đây hàm này gọi adminGetProjects() rồi .find() — tức là kéo TOÀN BỘ
+ * bảng projects kèm join project_images chỉ để lấy một dòng, và trang sửa dự án
+ * chạy nó hai lần mỗi lần tải.
+ */
 export async function adminGetProject(id: string): Promise<Project | null> {
-  const list = await adminGetProjects();
-  return list.find((p) => p.id === id) ?? null;
+  const c = getAdminClient();
+  if (!c) return null;
+  const { data, error } = await c
+    .from("projects")
+    .select("*, project_images(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) console.error("[admin-data] adminGetProject:", error.message);
+  return data ? mapProject(data) : null;
+}
+
+/** Đếm số dự án, dùng cho sort_order mặc định — không cần kéo cả bảng về. */
+export async function adminCountProjects(): Promise<number> {
+  const c = getAdminClient();
+  if (!c) return 0;
+  const { count, error } = await c
+    .from("projects")
+    .select("id", { count: "exact", head: true });
+  if (error) console.error("[admin-data] adminCountProjects:", error.message);
+  return count ?? 0;
 }
 
 export async function adminGetGallery(): Promise<GalleryImage[]> {
   const c = getAdminClient();
   if (!c) return [];
-  const { data } = await c.from("gallery_images").select("*").order("sort_order");
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    url: r.url ?? "",
-    alt: r.alt ?? "",
-    orientation: r.orientation === "vertical" ? "vertical" : "horizontal",
-    width: r.width ?? null,
-    height: r.height ?? null,
-    sortOrder: r.sort_order ?? 0,
-  }));
+  const { data, error } = await c.from("gallery_images").select("*").order("sort_order");
+  if (error) console.error("[admin-data] adminGetGallery:", error.message);
+  return (data ?? []).map(mapGallery);
 }

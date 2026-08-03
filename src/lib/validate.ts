@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { SKILL_LEVELS, type SkillLevel } from "./types";
 
 /**
  * Kiểm tra dữ liệu ở biên server action.
@@ -14,8 +15,6 @@ import { z } from "zod";
  * bị chặn bởi lỗi validate, nhưng dữ liệu bẩn thì không được lọt xuống DB.
  */
 
-export const SKILL_LEVELS = ["Beginner", "Intermediate", "Skillful", "Expert"] as const;
-
 const hex = z.string().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
 
 /** Số nguyên trong khoảng, tự cắt biên. NaN/rỗng -> giá trị mặc định. */
@@ -25,7 +24,7 @@ export function intInRange(input: unknown, min: number, max: number, fallback: n
   return Math.min(max, Math.max(min, Math.round(n)));
 }
 
-export function skillLevel(input: unknown): (typeof SKILL_LEVELS)[number] {
+export function skillLevel(input: unknown): SkillLevel {
   const r = z.enum(SKILL_LEVELS).safeParse(input);
   return r.success ? r.data : "Skillful";
 }

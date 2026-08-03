@@ -42,7 +42,17 @@ export type Education = {
   sortOrder: number;
 };
 
-export type SkillLevel = "Expert" | "Experienced" | "Skillful" | "Beginner";
+/**
+ * Nguồn DUY NHẤT cho danh sách mức kĩ năng.
+ *
+ * Trước đây danh sách này bị chép lại ở nhiều nơi (form admin, lớp validate),
+ * và đã lệch nhau: bản validate ghi "Intermediate" thay vì "Experienced", nên
+ * admin chọn "Experienced" là bị lặng lẽ đổi thành "Skillful" lúc lưu. Mọi nơi
+ * cần danh sách này phải import từ đây để không lệch lại lần nữa.
+ */
+export const SKILL_LEVELS = ["Expert", "Experienced", "Skillful", "Beginner"] as const;
+
+export type SkillLevel = (typeof SKILL_LEVELS)[number];
 
 export type Skill = {
   id: string;
