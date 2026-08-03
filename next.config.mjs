@@ -18,6 +18,14 @@ const remotePatterns = supabaseHost
   ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
   : [];
 
+if (!supabaseHost) {
+  console.warn(
+    "[next.config] NEXT_PUBLIC_SUPABASE_URL không có lúc build — remotePatterns rỗng, " +
+      "next/image sẽ CHẶN mọi ảnh Supabase. Trên Vercel, nhớ gắn biến này cho cả " +
+      "Preview nếu muốn bản preview hiển thị ảnh thật."
+  );
+}
+
 /**
  * CSP: script-src cần 'unsafe-inline' vì layout nhúng inline script đặt theme
  * (chạy trước paint để tránh nháy màu) và inline style biến màu. Nới đúng chỗ
