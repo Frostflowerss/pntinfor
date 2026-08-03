@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Tilt } from "@/components/ui/Interactive";
 import { SmartImage } from "@/components/ui/SmartImage";
 import { classShort } from "@/lib/utils";
 import type { Project } from "@/lib/types";
@@ -18,8 +17,11 @@ export function ProjectCard({
   priority?: boolean;
   aspect?: string;
 }) {
+  // Bỏ hiệu ứng nghiêng theo chuột: mỗi card từng là một client component gắn
+  // listener chuột riêng, 10 dự án là 10 listener chỉ để nghiêng 5 độ. Hiệu ứng
+  // phóng ảnh + hiện mũi tên khi hover đã đủ phản hồi, và làm hoàn toàn bằng CSS.
   return (
-    <Tilt max={5} className="h-full">
+    <div className="h-full">
       <Link
         href={`/work/${project.slug}`}
         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--ink-soft)] transition-colors hover:border-[color-mix(in_srgb,var(--accent)_50%,var(--line))]"
@@ -64,6 +66,6 @@ export function ProjectCard({
           </p>
         </div>
       </Link>
-    </Tilt>
+    </div>
   );
 }

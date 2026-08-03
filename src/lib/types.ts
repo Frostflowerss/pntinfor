@@ -55,6 +55,9 @@ export type Skill = {
 export type ProjectImage = {
   id: string;
   url: string;
+  /** Kích thước gốc, null với ảnh tải lên trước khi có migration_image_dimensions. */
+  width: number | null;
+  height: number | null;
   sortOrder: number;
 };
 
@@ -86,6 +89,8 @@ export type GalleryImage = {
   url: string;
   alt: string;
   orientation: "horizontal" | "vertical";
+  width: number | null;
+  height: number | null;
   sortOrder: number;
 };
 

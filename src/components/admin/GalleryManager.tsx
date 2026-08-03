@@ -5,17 +5,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Loader2, X, RectangleHorizontal, RectangleVertical } from "lucide-react";
 import { addGalleryImages, deleteGalleryImage, updateGalleryImage } from "@/lib/actions";
+import { uploadImage } from "@/components/admin/Uploaders";
 import type { GalleryImage } from "@/lib/types";
 
-async function upload(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("folder", "gallery");
-  const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Upload thất bại");
-  return json.url;
-}
+// Hàm upload trước đây được viết trùng ở đây và trong Uploaders.tsx; nay dùng
+// chung một chỗ, kèm nén ảnh lớn và đo kích thước thật.
 
 export function GalleryManager({ images }: { images: GalleryImage[] }) {
   const router = useRouter();
@@ -29,17 +23,17 @@ export function GalleryManager({ images }: { images: GalleryImage[] }) {
     setBusy(true);
     setErr("");
     try {
-      const items: { url: string; orientation: string }[] = [];
-      for (const f of Array.from(files)) {
-        const url = await upload(f);
-        const orientation = await new Promise<string>((resolve) => {
-          const img = new window.Image();
-          img.onload = () => resolve(img.height > img.width ? "vertical" : "horizontal");
-          img.onerror = () => resolve("horizontal");
-          img.src = url;
-        });
-        items.push({ url, orientation });
-      }
+      // Trước đây: tải tuần tự, rồi tải LẠI từng ảnh qua new Image() chỉ để
+      // đoán dọc/ngang. Nay đo ngay từ tệp gốc trước khi gửi, và tải song song.
+      const uploaded = await Promise.all(
+        Array.from(files).map((f) => uploadImage(f, "gallery"))
+      );
+      const items = uploaded.map((u) => ({
+        url: u.url,
+        orientation: u.width && u.height && u.height > u.width ? "vertical" : "horizontal",
+        width: u.width,
+        height: u.height,
+      }));
       await addGalleryImages(items);
       router.refresh();
     } catch (e) {

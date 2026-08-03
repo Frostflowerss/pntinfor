@@ -4,8 +4,22 @@ import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { UploadCloud, X, Loader2, FileText, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compressImage } from "@/lib/image-client";
 
-async function uploadFile(file: File, folder: string): Promise<string> {
+export type UploadedImage = { url: string; width: number | null; height: number | null };
+
+/**
+ * Nén ảnh quá lớn rồi tải lên, kèm theo kích thước thật.
+ * Kích thước được lưu vào DB để giao diện hiển thị đúng tỉ lệ gốc thay vì ép
+ * mọi ảnh về một khung cố định rồi xén.
+ */
+export async function uploadImage(file: File, folder: string): Promise<UploadedImage> {
+  const { file: out, size } = await compressImage(file);
+  const url = await uploadFile(out, folder);
+  return { url, width: size?.width ?? null, height: size?.height ?? null };
+}
+
+export async function uploadFile(file: File, folder: string): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
   fd.append("folder", folder);
@@ -40,7 +54,7 @@ export function ImageUploader({
       setBusy(true);
       setErr("");
       try {
-        setUrl(await uploadFile(file, folder));
+        setUrl((await uploadImage(file, folder)).url);
       } catch (e) {
         setErr((e as Error).message);
       } finally {
@@ -162,9 +176,9 @@ export function MultiImageUploader({
 }: {
   name: string;
   folder: string;
-  initial?: string[];
+  initial?: UploadedImage[];
 }) {
-  const [urls, setUrls] = useState<string[]>(initial);
+  const [urls, setUrls] = useState<UploadedImage[]>(initial);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -175,10 +189,10 @@ export function MultiImageUploader({
     setBusy(true);
     setErr("");
     try {
-      const uploaded: string[] = [];
-      for (const file of Array.from(files)) {
-        uploaded.push(await uploadFile(file, folder));
-      }
+      // Tải song song thay vì tuần tự — chọn 12 ảnh không còn phải xếp hàng.
+      const uploaded = await Promise.all(
+        Array.from(files).map((file) => uploadImage(file, folder))
+      );
       setUrls((p) => [...p, ...uploaded]);
     } catch (e) {
       setErr((e as Error).message);
@@ -210,7 +224,7 @@ export function MultiImageUploader({
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
         {urls.map((u, i) => (
           <div
-            key={u + i}
+            key={u.url + i}
             draggable
             onDragStart={() => (dragIndex.current = i)}
             onDragOver={(e) => e.preventDefault()}
@@ -220,7 +234,7 @@ export function MultiImageUploader({
             }}
             className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--line)]"
           >
-            <Image src={u} alt="" fill className="object-cover" sizes="200px" />
+            <Image src={u.url} alt="" fill className="object-cover" sizes="200px" />
             <div className="absolute left-1 top-1 grid h-6 w-6 place-items-center rounded bg-black/50 text-white opacity-0 transition group-hover:opacity-100">
               <GripVertical size={13} />
             </div>

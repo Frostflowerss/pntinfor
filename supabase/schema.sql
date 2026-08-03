@@ -92,6 +92,8 @@ create table if not exists public.project_images (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
   url text not null,
+  width int,
+  height int,
   sort_order int default 0
 );
 create index if not exists project_images_project_idx on public.project_images(project_id);
@@ -102,6 +104,8 @@ create table if not exists public.gallery_images (
   url text not null,
   alt text default '',
   orientation text default 'horizontal',
+  width int,
+  height int,
   sort_order int default 0,
   created_at timestamptz default now()
 );

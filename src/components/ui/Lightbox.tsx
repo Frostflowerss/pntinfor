@@ -117,7 +117,7 @@ export function Lightbox({
                   go(-1);
                 }}
                 aria-label="Previous"
-                className="absolute left-3 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 hover:text-white sm:left-6"
+                className="absolute left-1 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-black/40 text-white/80 backdrop-blur transition hover:bg-white/10 hover:text-white sm:left-6 sm:h-12 sm:w-12"
               >
                 <ChevronLeft size={22} />
               </button>
@@ -127,7 +127,7 @@ export function Lightbox({
                   go(1);
                 }}
                 aria-label="Next"
-                className="absolute right-3 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 hover:text-white sm:right-6"
+                className="absolute right-1 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-black/40 text-white/80 backdrop-blur transition hover:bg-white/10 hover:text-white sm:right-6 sm:h-12 sm:w-12"
               >
                 <ChevronRight size={22} />
               </button>
@@ -136,7 +136,7 @@ export function Lightbox({
 
           <motion.div
             key={index}
-            className="relative mx-12 h-[82vh] w-[min(92vw,1100px)]"
+            className="relative h-[74vh] w-[min(84vw,1100px)] sm:h-[82vh] sm:w-[min(88vw,1100px)]"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}

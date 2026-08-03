@@ -47,12 +47,41 @@ export function text(input: unknown, max = 5000): string {
   return String(input ?? "").slice(0, max);
 }
 
-/** Parse chuỗi JSON thành mảng URL string; hỏng hoặc sai kiểu -> mảng rỗng. */
-export function urlList(input: unknown): string[] {
+export type ImageEntry = { url: string; width: number | null; height: number | null };
+
+const dimension = z.number().int().positive().max(30000).nullable().catch(null);
+
+/**
+ * Parse danh sách ảnh của dự án.
+ *
+ * Chấp nhận cả hai dạng: mảng chuỗi URL (dữ liệu lưu trước khi có cột
+ * width/height) và mảng object {url,width,height} (dạng mới). Ảnh cũ giữ
+ * width/height = null, giao diện tự quay về cách hiển thị cũ cho chúng.
+ */
+export function imageList(input: unknown): ImageEntry[] {
   try {
     const parsed = JSON.parse(String(input ?? "[]"));
-    const r = z.array(z.string().max(2048)).max(200).safeParse(parsed);
-    return r.success ? r.data.filter(Boolean) : [];
+    const schema = z
+      .array(
+        z.union([
+          z.string().max(2048),
+          z.object({
+            url: z.string().max(2048),
+            width: dimension.optional(),
+            height: dimension.optional(),
+          }),
+        ])
+      )
+      .max(200);
+    const r = schema.safeParse(parsed);
+    if (!r.success) return [];
+    return r.data
+      .map((e) =>
+        typeof e === "string"
+          ? { url: e, width: null, height: null }
+          : { url: e.url, width: e.width ?? null, height: e.height ?? null }
+      )
+      .filter((e) => Boolean(e.url));
   } catch {
     return [];
   }

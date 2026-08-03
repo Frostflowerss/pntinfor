@@ -246,11 +246,17 @@ export async function saveProject(formData: FormData) {
   if (imagesJson && projectId) {
     // JSON.parse trước đây được bọc try nhưng kết quả không hề kiểm kiểu:
     // một payload như {"a":1} hay [1,2,3] vẫn đi thẳng xuống DB.
-    const urls = v.urlList(imagesJson);
+    const images = v.imageList(imagesJson);
     await client.from("project_images").delete().eq("project_id", projectId);
-    if (urls.length) {
+    if (images.length) {
       await client.from("project_images").insert(
-        urls.map((url, i) => ({ project_id: projectId, url, sort_order: i }))
+        images.map((img, i) => ({
+          project_id: projectId,
+          url: img.url,
+          width: img.width,
+          height: img.height,
+          sort_order: i,
+        }))
       );
     }
   }
@@ -279,7 +285,9 @@ export async function toggleProjectFeatured(id: string, featured: boolean) {
 }
 
 /* ---------------- Gallery ---------------- */
-export async function addGalleryImages(items: { url: string; orientation: string }[]) {
+export async function addGalleryImages(
+  items: { url: string; orientation: string; width?: number | null; height?: number | null }[]
+) {
   const client = await guard();
   const { data: existing } = await client
     .from("gallery_images")
@@ -289,8 +297,10 @@ export async function addGalleryImages(items: { url: string; orientation: string
   let next = (existing?.[0]?.sort_order ?? -1) + 1;
   const rows = items.map((it) => ({
     url: it.url,
-    alt: "Gallery image",
+    alt: "",
     orientation: it.orientation === "vertical" ? "vertical" : "horizontal",
+    width: v.intInRange(it.width, 1, 30000, 0) || null,
+    height: v.intInRange(it.height, 1, 30000, 0) || null,
     sort_order: next++,
   }));
   const { error } = await client.from("gallery_images").insert(rows);

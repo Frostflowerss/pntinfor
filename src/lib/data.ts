@@ -85,7 +85,13 @@ const mapProject = (r: any): Project => ({
   responsibilitiesEN: arr(r.responsibilities_en),
   coverUrl: r.cover_url ?? "",
   images: (r.project_images ?? [])
-    .map((i: any) => ({ id: i.id, url: i.url, sortOrder: i.sort_order ?? 0 }))
+    .map((i: any) => ({
+      id: i.id,
+      url: i.url,
+      width: i.width ?? null,
+      height: i.height ?? null,
+      sortOrder: i.sort_order ?? 0,
+    }))
     .sort((a: any, b: any) => a.sortOrder - b.sortOrder),
   featured: r.featured ?? false,
   featuredOrder: r.featured_order ?? 0,
@@ -98,6 +104,8 @@ const mapGallery = (r: any): GalleryImage => ({
   url: r.url ?? "",
   alt: r.alt ?? "",
   orientation: r.orientation === "vertical" ? "vertical" : "horizontal",
+  width: r.width ?? null,
+  height: r.height ?? null,
   sortOrder: r.sort_order ?? 0,
 });
 
