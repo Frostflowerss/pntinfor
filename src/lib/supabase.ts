@@ -12,12 +12,18 @@ export const isAdminConfigured = Boolean(url && serviceKey);
 
 export const STORAGE_BUCKET = "portfolio";
 
+/* Clients are stateless here (no session persistence), so one instance per
+   process is reused instead of rebuilt on every call. */
+let publicClient: SupabaseClient | null = null;
+let adminClient: SupabaseClient | null = null;
+
 /** Read-only client (anon key). Safe for browser and server reads. */
 export function getPublicClient(): SupabaseClient | null {
   if (!url || !anonKey) return null;
-  return createClient(url, anonKey, {
+  publicClient ??= createClient(url, anonKey, {
     auth: { persistSession: false },
   });
+  return publicClient;
 }
 
 /**
@@ -27,7 +33,8 @@ export function getPublicClient(): SupabaseClient | null {
  */
 export function getAdminClient(): SupabaseClient | null {
   if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey, {
+  adminClient ??= createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  return adminClient;
 }

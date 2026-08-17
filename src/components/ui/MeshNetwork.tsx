@@ -31,6 +31,10 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
   const fine = usePointerFine();
+  // Depend on the scalar the effect actually uses, not the object identity —
+  // the parent rebuilds `counts` on every render, which would otherwise tear
+  // down and rebuild the whole canvas (nodes, observers, listeners) each time.
+  const flyTotal = counts.work + counts.skills + counts.experience + counts.education;
 
   useEffect(() => {
     const cv = ref.current;
@@ -74,9 +78,13 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
         node: mix(base, tint, isLight() ? 0.0 : 0.55),
       };
     };
+    // colNow is mutated in place each frame, so snapshots must copy the RGB
+    // arrays themselves — a shallow spread would alias and freeze the fade.
+    const cloneColors = (c: Record<Key, RGB>) =>
+      Object.fromEntries(keys.map((k) => [k, [...c[k]] as RGB])) as Record<Key, RGB>;
     let colFrom = buildColors(), colTo = colFrom, colNow = buildColors();
     let colT0 = 0, colDur = 750;
-    const startTransition = () => { colFrom = { ...colNow }; colTo = buildColors(); colT0 = performance.now(); colDur = 750; };
+    const startTransition = () => { colFrom = cloneColors(colNow); colTo = buildColors(); colT0 = performance.now(); colDur = 750; };
     const themeObs = new MutationObserver(startTransition);
     themeObs.observe(probe, { attributes: true, attributeFilter: ["data-theme"] });
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
@@ -88,9 +96,9 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     const sprite = document.createElement("canvas");
     sprite.width = sprite.height = 64;
     const sctx = sprite.getContext("2d")!;
-    let spriteKey = "";
+    let spriteKey = -1;
     const buildSprite = (c: RGB) => {
-      const k = c.map((v) => v | 0).join(",");
+      const k = ((c[0] | 0) << 16) | ((c[1] | 0) << 8) | (c[2] | 0);
       if (k === spriteKey) return;
       spriteKey = k;
       sctx.clearRect(0, 0, 64, 64);
@@ -164,21 +172,20 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     observeZones();
 
     // ---------------- fireflies ----------------
-    const FLY_N = clamp(Math.round((counts.work + counts.skills + counts.experience + counts.education) * 1.4), 10, fine ? 22 : 14);
+    const FLY_N = clamp(Math.round(flyTotal * 1.4), 10, fine ? 22 : 14);
     const flies: Fly[] = Array.from({ length: FLY_N }, (_, i) => ({
       x: W / 2, y: H / 2, tx: W / 2, ty: H / 2,
       off: rand(12, 36), edge: i / FLY_N, phase: rand(0, 6.28), trail: [],
     }));
 
-    const flyTargets = () => {
+    // Takes the frame's already-measured rect: re-reading it here would force a
+    // second synchronous layout every frame for an identical value.
+    const flyTargets = (rz: DOMRect | null) => {
       let rect: DOMRect | null = null;
-      if (activeEl) {
-        const r = activeEl.getBoundingClientRect();
-        if (r.bottom > 60 && r.top < H - 60) rect = r;
-      }
+      if (rz && rz.bottom > 60 && rz.top < H - 60) rect = rz;
       if (!rect) {
         for (const f of flies) { f.tx = lerp(f.tx, W / 2, 0.02); f.ty = lerp(f.ty, H / 2, 0.02); }
-        return null;
+        return;
       }
       const L = rect.left, T = clamp(rect.top, 70, H), R = rect.right, B = clamp(rect.bottom, 70, H);
       const w = Math.max(1, R - L), h = Math.max(1, B - T), peri = 2 * (w + h);
@@ -191,21 +198,27 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
         f.tx = clamp(bx + nx * f.off, 8, W - 8);
         f.ty = clamp(by + ny * f.off, 64, H - 8);
       }
-      return { cx: (L + R) / 2, cy: (T + B) / 2 };
     };
 
     // ---------------- render loop ----------------
     const LINK = fine ? 118 : 96;
-    const ATTRACT = 160;
-    let raf = 0, running = true, last = performance.now();
+    const LINK2 = LINK * LINK;
+    const ATTRACT = 160, ATTRACT2 = ATTRACT * ATTRACT;
+    const CUR_R = ATTRACT + 50, CUR_R2 = CUR_R * CUR_R;
+    let raf = 0, running = true;
+
+    // Scratch buffers reused across frames: the render loop allocates nothing.
+    const act: { n: Node; a: number; near: number }[] = [];
+    const curNear: { n: Node; d: number }[] = [];
 
     const frame = (t: number) => {
-      last = t;
-
       // theme color lerp
       const p = colDur ? clamp((t - colT0) / colDur, 0, 1) : 1;
       const e = 1 - Math.pow(1 - p, 3);
-      for (const k of keys) colNow[k] = colFrom[k].map((v, i) => lerp(v, colTo[k][i], e)) as RGB;
+      for (const k of keys) {
+        const f = colFrom[k], to = colTo[k], cur = colNow[k];
+        cur[0] = lerp(f[0], to[0], e); cur[1] = lerp(f[1], to[1], e); cur[2] = lerp(f[2], to[2], e);
+      }
       buildSprite(colNow.glow);
 
       // virtual cursor inertia + speed
@@ -213,7 +226,8 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
         vc.px = vc.x; vc.py = vc.y;
         vc.x += (vc.tx - vc.x) * 0.14;
         vc.y += (vc.ty - vc.y) * 0.14;
-        vc.speed = lerp(vc.speed, Math.hypot(vc.x - vc.px, vc.y - vc.py), 0.2);
+        const vdx = vc.x - vc.px, vdy = vc.y - vc.py;
+        vc.speed = lerp(vc.speed, Math.sqrt(vdx * vdx + vdy * vdy), 0.2);
       } else vc.speed = lerp(vc.speed, 0, 0.1);
 
       ctx.clearRect(0, 0, W, H);
@@ -226,30 +240,42 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
       const fpy = haveCur ? vc.y : rz ? clamp((rz.top + rz.bottom) / 2, 80, H - 40) : H / 2;
       const REVEAL = haveCur ? 240 : 320;
 
-      // resolve positions + cursor attraction; keep only nodes near focus
-      const act: { n: Node; a: number; near: number }[] = [];
+      // resolve positions + cursor attraction; keep only nodes near focus.
+      // Distances stay squared until a value is actually needed, so the common
+      // "too far, skip it" case never pays for a square root.
+      const REVEAL2 = REVEAL * REVEAL;
+      let actN = 0;
       for (const n of nodes) {
         let sx = n.bx + Math.sin(t * n.fx + n.px) * n.ax * mScale;
         let sy = n.by + Math.cos(t * n.fy + n.py) * n.ay * mScale;
         let near = 0;
         if (haveCur) {
-          const dx = vc.x - sx, dy = vc.y - sy, dc = Math.hypot(dx, dy);
-          if (dc < ATTRACT) { near = 1 - dc / ATTRACT; const f = near * 0.22; sx += dx * f; sy += dy * f; }
+          const dx = vc.x - sx, dy = vc.y - sy, dc2 = dx * dx + dy * dy;
+          if (dc2 < ATTRACT2) {
+            near = 1 - Math.sqrt(dc2) / ATTRACT;
+            const f = near * 0.22; sx += dx * f; sy += dy * f;
+          }
         }
         n.sx = sx; n.sy = sy;
-        const d = Math.hypot(sx - fpx, sy - fpy);
-        const a = d > REVEAL ? 0 : Math.pow(1 - d / REVEAL, 1.6);
-        if (a > 0.03) act.push({ n, a, near });
+        const rx = sx - fpx, ry = sy - fpy, rd2 = rx * rx + ry * ry;
+        if (rd2 >= REVEAL2) continue; // alpha would be 0
+        const a = Math.pow(1 - Math.sqrt(rd2) / REVEAL, 1.6);
+        if (a <= 0.03) continue;
+        const slot = act[actN] ?? (act[actN] = { n, a, near });
+        slot.n = n; slot.a = a; slot.near = near;
+        actN++;
       }
 
       // links only among revealed nodes (small set, no grid needed)
       ctx.lineWidth = 0.7;
-      for (let i = 0; i < act.length; i++) {
-        for (let j = i + 1; j < act.length; j++) {
-          const A = act[i].n, B = act[j].n;
-          const d = Math.hypot(A.sx - B.sx, A.sy - B.sy);
-          if (d < LINK) {
-            ctx.strokeStyle = rgba(colNow.line, (1 - d / LINK) * Math.min(act[i].a, act[j].a) * 0.5);
+      for (let i = 0; i < actN; i++) {
+        const A = act[i].n, ai = act[i].a;
+        for (let j = i + 1; j < actN; j++) {
+          const B = act[j].n;
+          const dx = A.sx - B.sx, dy = A.sy - B.sy, d2 = dx * dx + dy * dy;
+          if (d2 < LINK2) {
+            const d = Math.sqrt(d2);
+            ctx.strokeStyle = rgba(colNow.line, (1 - d / LINK) * Math.min(ai, act[j].a) * 0.5);
             ctx.beginPath(); ctx.moveTo(A.sx, A.sy); ctx.lineTo(B.sx, B.sy); ctx.stroke();
           }
         }
@@ -257,26 +283,42 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
 
       // node glow (additive) + crisp core, faded by reveal, brighter near cursor
       ctx.globalCompositeOperation = "lighter";
-      for (const { n, a, near } of act) {
+      for (let i = 0; i < actN; i++) {
+        const { n, a, near } = act[i];
         const size = lerp(6, 15, n.z) * (1 + near * 0.7);
         ctx.globalAlpha = clamp(a * lerp(0.16, 0.5, n.z) * (1 + near), 0, 1);
         ctx.drawImage(sprite, n.sx - size / 2, n.sy - size / 2, size, size);
       }
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
-      for (const { n, a, near } of act) {
+      for (let i = 0; i < actN; i++) {
+        const { n, a, near } = act[i];
         ctx.fillStyle = rgba(colNow.node, clamp(a * lerp(0.5, 1, n.z) * (1 + near), 0, 1));
         ctx.beginPath(); ctx.arc(n.sx, n.sy, lerp(0.7, 1.7, n.z) + near * 1.2, 0, 6.2832); ctx.fill();
       }
 
       // cursor: stronger strands to nearest revealed nodes + small glow
       if (haveCur) {
-        const near = act
-          .map((o) => ({ n: o.n, d: Math.hypot(o.n.sx - vc.x, o.n.sy - vc.y) }))
-          .filter((o) => o.d < ATTRACT + 50)
-          .sort((p, q) => p.d - q.d)
-          .slice(0, 7);
-        for (const { n, d } of near) {
-          ctx.strokeStyle = rgba(colNow.primary, (1 - d / (ATTRACT + 50)) * 0.65);
+        // Collect in-range nodes into the scratch buffer, then insertion-sort the
+        // used prefix (always tiny) — same order as sort(), without the garbage.
+        let cn = 0;
+        for (let i = 0; i < actN; i++) {
+          const n = act[i].n;
+          const dx = n.sx - vc.x, dy = n.sy - vc.y, d2 = dx * dx + dy * dy;
+          if (d2 >= CUR_R2) continue;
+          const slot = curNear[cn] ?? (curNear[cn] = { n, d: 0 });
+          slot.n = n; slot.d = Math.sqrt(d2);
+          cn++;
+        }
+        for (let i = 1; i < cn; i++) {
+          const key = curNear[i];
+          let j = i - 1;
+          while (j >= 0 && curNear[j].d > key.d) { curNear[j + 1] = curNear[j]; j--; }
+          curNear[j + 1] = key;
+        }
+        const lim = cn < 7 ? cn : 7;
+        for (let i = 0; i < lim; i++) {
+          const { n, d } = curNear[i];
+          ctx.strokeStyle = rgba(colNow.primary, (1 - d / CUR_R) * 0.65);
           ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(vc.x, vc.y); ctx.lineTo(n.sx, n.sy); ctx.stroke();
         }
@@ -287,12 +329,14 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
       }
 
       // fireflies around the reading zone (calm: no trail / no pulse)
-      flyTargets();
+      flyTargets(rz);
       ctx.globalCompositeOperation = "lighter";
+      const FLY_R = REVEAL + 140;
       for (const f of flies) {
         f.x += (f.tx - f.x) * 0.06 + (motion ? Math.sin(t * 0.0016 + f.phase) * 0.3 : 0);
         f.y += (f.ty - f.y) * 0.06 + (motion ? Math.cos(t * 0.0014 + f.phase) * 0.3 : 0);
-        const vis = clamp(1 - Math.hypot(f.x - fpx, f.y - fpy) / (REVEAL + 140), 0, 1);
+        const fdx = f.x - fpx, fdy = f.y - fpy;
+        const vis = clamp(1 - Math.sqrt(fdx * fdx + fdy * fdy) / FLY_R, 0, 1);
         if (vis < 0.05) continue;
         const flick = 0.55 + 0.45 * Math.sin(t * 0.005 + f.phase);
         ctx.globalAlpha = 0.4 * flick * vis;
@@ -307,7 +351,7 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
     // visibility + throttled resize/scroll
     const onVisible = () => {
       if (document.hidden) { running = false; cancelAnimationFrame(raf); }
-      else if (!running) { running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
+      else if (!running) { running = true; raf = requestAnimationFrame(frame); }
     };
     let rTimer = 0;
     const onResize = () => { clearTimeout(rTimer); rTimer = window.setTimeout(() => { setSize(); observeZones(); }, 160); };
@@ -325,7 +369,7 @@ export function MeshNetwork({ counts }: { counts: Counts }) {
       window.removeEventListener("pointerleave", onLeave);
       clearTimeout(rTimer);
     };
-  }, [reduce, fine, counts]);
+  }, [reduce, fine, flyTotal]);
 
   return (
     <div aria-hidden data-fx className="site-mesh fx-bg pointer-events-none fixed inset-0 -z-10">

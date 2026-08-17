@@ -33,6 +33,12 @@ export const adminGetProjects = () => rows<Project>("projects", "*, project_imag
 export const adminGetGallery = () => rows<GalleryImage>("gallery_images", "*", mapGallery);
 
 export async function adminGetProject(id: string): Promise<Project | null> {
-  const list = await adminGetProjects();
-  return list.find((p) => p.id === id) ?? null;
+  const c = getAdminClient();
+  if (!c) return null;
+  const { data } = await c
+    .from("projects")
+    .select("*, project_images(*)")
+    .eq("id", id)
+    .maybeSingle();
+  return data ? mapProject(data) : null;
 }
