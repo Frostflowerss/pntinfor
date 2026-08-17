@@ -35,9 +35,12 @@ function verifyToken(token: string | undefined): boolean {
   const parts = token.split(".");
   if (parts.length !== 3) return false;
   const [nonce, exp, sig] = parts;
+  // Must be a hex digest before it reaches timingSafeEqual: that compares BYTE
+  // length, so a multi-byte string of equal *character* length would pass a
+  // naive length check and then throw RangeError out of every authed route.
+  if (!/^[0-9a-f]{64}$/.test(sig)) return false;
   const expected = sign(`${nonce}.${exp}`, key);
-  if (sig.length !== expected.length) return false;
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return false;
+  if (!crypto.timingSafeEqual(Buffer.from(sig, "hex"), Buffer.from(expected, "hex"))) return false;
   return Number(exp) > Date.now();
 }
 

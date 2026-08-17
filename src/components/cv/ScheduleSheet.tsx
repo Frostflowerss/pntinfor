@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Lang, SiteData } from "@/lib/types";
 import {
@@ -52,7 +52,7 @@ function IconPrint() {
   );
 }
 
-export function ScheduleSheet({
+function ScheduleSheetImpl({
   data,
   lang,
   onLang,
@@ -478,3 +478,10 @@ function initials(name: string): string {
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 }
+
+/**
+ * Memoised: CvStage re-renders on every resize event — and on mobile browsers
+ * `resize` fires while scrolling as the URL bar collapses — but nothing in this
+ * sheet depends on the stage's fit, so the whole tree was rebuilding for nothing.
+ */
+export const ScheduleSheet = memo(ScheduleSheetImpl);

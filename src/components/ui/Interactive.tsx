@@ -36,15 +36,17 @@ export function Magnetic({
 
   if (reduce || !fine) return <div className={cn("inline-block", className)}>{children}</div>;
 
+  // Measure inside the rAF: superseded moves never reach the frame, so reading
+  // layout for them only forces a synchronous reflow for a discarded value.
   function onMove(e: React.MouseEvent) {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const dx = (e.clientX - (r.left + r.width / 2)) * strength;
-    const dy = (e.clientY - (r.top + r.height / 2)) * strength;
+    const cx = e.clientX, cy = e.clientY;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
-      x.set(dx);
-      y.set(dy);
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      x.set((cx - (r.left + r.width / 2)) * strength);
+      y.set((cy - (r.top + r.height / 2)) * strength);
     });
   }
   function reset() {
@@ -78,13 +80,17 @@ export function Tilt({
 
   if (reduce || !fine) return <div className={className}>{children}</div>;
 
+  // One instance renders per project card, so keep the layout read batched into
+  // the frame that actually consumes it.
   function onMove(e: React.MouseEvent) {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
+    const cx = e.clientX, cy = e.clientY;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const px = (cx - r.left) / r.width - 0.5;
+      const py = (cy - r.top) / r.height - 0.5;
       ry.set(px * max);
       rx.set(-py * max);
     });

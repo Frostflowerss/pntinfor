@@ -46,7 +46,16 @@ export function CvStage({ data }: { data: SiteData }) {
   }, []);
 
   useIsoLayoutEffect(() => {
-    const update = () => setFit(computeFit(window.innerWidth, window.innerHeight));
+    // Keep the previous object when the fit is unchanged so React can bail out:
+    // orientationchange and mobile URL-bar toggles fire repeated resize events
+    // that resolve to the exact same scale.
+    const update = () =>
+      setFit((prev) => {
+        const next = computeFit(window.innerWidth, window.innerHeight);
+        return prev.scale === next.scale && prev.pan === next.pan && prev.portrait === next.portrait
+          ? prev
+          : next;
+      });
     update();
     window.addEventListener("resize", update, { passive: true });
     window.addEventListener("orientationchange", update);
