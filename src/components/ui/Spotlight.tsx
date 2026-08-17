@@ -13,15 +13,17 @@ export function Spotlight({ className }: { className?: string }) {
 
   if (reduce || !fine) return <div className={className} aria-hidden />;
 
+  // Measure inside the rAF, not per event: the frame only ever uses the last
+  // move's coords, so reading layout on the discarded ones is pure waste.
   function onMove(e: React.MouseEvent) {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const x = e.clientX - r.left;
-    const y = e.clientY - r.top;
+    const cx = e.clientX, cy = e.clientY;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
-      ref.current?.style.setProperty("--mx", `${x}px`);
-      ref.current?.style.setProperty("--my", `${y}px`);
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${cx - r.left}px`);
+      el.style.setProperty("--my", `${cy - r.top}px`);
     });
   }
 
@@ -63,22 +65,24 @@ export function ProximityGlow({
 
   useEffect(() => {
     if (reduce || !fine) return;
+    // Window-level listener, so this fires for every move anywhere on the page.
+    // All measurement and math is deferred into the rAF, which keeps it to at
+    // most one layout read per frame instead of one per mousemove event.
     function onMove(e: MouseEvent) {
-      const el = wrap.current;
-      const g = glow.current;
-      if (!el || !g) return;
-      const r = el.getBoundingClientRect();
-      const mx = e.clientX - r.left;
-      const my = e.clientY - r.top;
-      // distance from cursor to nearest edge of the card (0 when inside)
-      const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
-      const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
-      const dist = Math.hypot(dx, dy);
-      const intensity = Math.pow(Math.max(0, 1 - dist / radius), 1.6);
+      const cx = e.clientX, cy = e.clientY;
       cancelAnimationFrame(raf.current);
       raf.current = requestAnimationFrame(() => {
-        g.style.setProperty("--gx", `${mx}px`);
-        g.style.setProperty("--gy", `${my}px`);
+        const el = wrap.current;
+        const g = glow.current;
+        if (!el || !g) return;
+        const r = el.getBoundingClientRect();
+        // distance from cursor to nearest edge of the card (0 when inside)
+        const dx = Math.max(r.left - cx, 0, cx - r.right);
+        const dy = Math.max(r.top - cy, 0, cy - r.bottom);
+        const dist = Math.hypot(dx, dy);
+        const intensity = Math.pow(Math.max(0, 1 - dist / radius), 1.6);
+        g.style.setProperty("--gx", `${cx - r.left}px`);
+        g.style.setProperty("--gy", `${cy - r.top}px`);
         g.style.opacity = String(intensity);
       });
     }

@@ -119,10 +119,15 @@ export function CountUp({
     }
     let raf = 0;
     const start = performance.now();
+    // The rounded value changes only a handful of times over the whole run, so
+    // re-render on those instead of on all ~96 frames. -1 can never equal a
+    // rounded count, so the first frame always commits, as before.
+    let shown = -1;
     const tick = (now: number) => {
       const t = Math.min((now - start) / (duration * 1000), 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      setVal(Math.round(eased * to));
+      const next = Math.round(eased * to);
+      if (next !== shown) { shown = next; setVal(next); }
       if (t < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
